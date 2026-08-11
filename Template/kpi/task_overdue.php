@@ -18,7 +18,7 @@
 
         <div class="card shadow-sm">
 
-            <div class="card-header bg-primary text-white">
+            <div class="card-header text-white">
                 <?= t('Task List') ?>
             </div>
 
@@ -26,7 +26,6 @@
                 <table class="kb-table">
                     <thead class="table-light">
                     <tr>
-                        <th width="70">#</th>
                         <th><?= t('Title') ?></th>
                         <th width="150"><?= t('Assignee') ?></th>
                         <th width="200"><?= t('Start Date') ?></th>
@@ -39,19 +38,83 @@
                     <?php foreach ($tasks as $task): ?>
 
                         <tr>
-
-                            <td><?= $task['id'] ?></td>
-
-                            <td>
-                                <?= $this->url->link(
-                                    $this->text->e($task['title']),
-                                    'TaskViewController',
-                                    'show',
+                             <td>
+                                <?php if (!empty($task['description'])): ?>
+                                <?= $this->modal->small(
+                                    'file',
+                                    '',
+                                    'BoardTooltipController',
+                                    'description',
                                     [
                                         'task_id' => $task['id'],
-                                        'project_id' => $project['id'],
+                                        'project_id' => $task['project_id'],
                                     ]
                                 ) ?>
+                                <?php else: ?>
+                                    <i class="fa fa-file ms-1 me-1" style="color: #6c757da0"></i>
+                                <?php endif; ?>
+
+                                <div class="dropdown">
+                                    <a href="#" class="dropdown-menu dropdown-menu-link-icon">
+                                        <strong>#<?= $this->text->e($task['id']) ?>
+                                            <i class="fa fa-caret-down"></i>
+                                        </strong>
+                                    </a>
+
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <?= $this->modal->large(
+                                                'edit',
+                                                t('Edit the task'),
+                                                'TaskModificationController',
+                                                'edit',
+                                                [
+                                                    'task_id' => $task['id'],
+                                                    'project_id' => $project['id'],
+                                                ],
+                                                false,
+                                                '',
+                                                true
+                                            ) ?>
+                                        </li>
+
+                                        <li>
+                                            <?= $this->modal->medium(
+                                                'comment',
+                                                t('Add a comment'),
+                                                'CommentController',
+                                                'create',
+                                                [
+                                                    'task_id' => $task['id'],
+                                                    'project_id' => $project['id'],
+                                                ],
+                                                false,
+                                                '',
+                                                true
+                                            ) ?>
+                                        </li>
+                                        <li>
+                                            <?= $this->modal->medium(
+                                                'trash',
+                                                t('Remove'),
+                                                'taskSuppressionController',
+                                                'confirm',
+                                                [
+                                                    'task_id' => $task['id']
+                                                ],
+                                                false,
+                                                '',
+                                                true
+                                            ) ?>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <?= $this->url->link($this->text->e($task['title']),'TaskViewController','show',
+                                [
+                                    'task_id' => $task['id'],
+                                    'project_id' => $project['id']
+                                ],
+                                'task-board-title') ?>
                             </td>
 
                             <td>

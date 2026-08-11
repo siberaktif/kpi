@@ -23,6 +23,22 @@ class KPIModel extends Base
             ->findOne();
     }
 
+    public function create(int $creatorId, int $projectId, int $taskId, int $kpiId, float $points)
+    {
+        $values = [
+            'kpi_id' => $kpiId,
+            'creator_id' => $creatorId,
+            'project_id' => $projectId,
+            'task_id' => $taskId,
+            'task_point' => $points,
+        ];
+        
+        return $this->db
+            ->table('kpi_assignment')
+            ->insert($values);
+
+    }
+
     public function update($taskId, $kpiId, $points)
     {
         return $this->db

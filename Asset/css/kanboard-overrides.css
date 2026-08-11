@@ -1,0 +1,22 @@
+header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.project-header {
+    position: sticky;
+    top: 2.8rem;
+    z-index: 99;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    color: inherit;
+    text-decoration: none;
+}

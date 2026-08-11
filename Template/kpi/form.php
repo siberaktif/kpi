@@ -1,47 +1,38 @@
 <div class="kb-form">
+    <div class="kb-form-body kb-row">
+        <div class="kb-col kb-col-6">
+            <input type="hidden"
+                id="project_id"
+                name="project_id"
+                value="<?= $this->text->e($values['project_id']) ?>">
 
-    <div class="kb-form-panel">
+            <div>
+                <?= $this->form->label(t('Title'), 'title') ?>
+                <?= $this->form->text('title', $values, $errors) ?>
+            </div>
 
-        <div class="kb-form-header">
-            <?= t('KPI Information') ?>
+            <div>
+                <?= $this->form->label(t('Description'), 'description') ?>
+                <?= $this->form->textEditor(
+                    'description',
+                    $values,
+                    $errors
+                ) ?>
+            </div>
+
+            <div>
+                <?= $this->form->label(t('Output'), 'output') ?>
+                <?= $this->form->textEditor(
+                    'output',
+                    $values,
+                    $errors
+                ) ?>
+            </div>
         </div>
 
-        <div class="kb-form-body">
-
-            <input type="hidden"
-                   name="project_id"
-                   value="<?= $this->text->e($values['project_id']) ?>">
-
-            <!-- Title -->
+        <div class="kb-col kb-col-6">
             <div class="kb-row">
-                <div class="kb-col">
-                    <?= $this->form->label(t('Title'), 'title') ?>
-                    <?= $this->form->text('title', $values, $errors) ?>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="kb-row">
-                <div class="kb-col">
-                    <?= $this->form->label(t('Description'), 'description') ?>
-                    <?= $this->form->textArea(
-                        'description',
-                        $values,
-                        $errors,
-                        ['rows' => 5]
-                    ) ?>
-                </div>
-            </div>
-
-            <!-- Outcome + Type -->
-            <div class="kb-row">
-
-                <div class="kb-col-2">
-                    <?= $this->form->label(t('Output'), 'output') ?>
-                    <?= $this->form->text('output', $values, $errors) ?>
-                </div>
-
-                <div class="kb-col-2">
+                <div class="kb-col kb-col-6">
                     <?= $this->form->label(t('Type'), 'type') ?>
                     <?= $this->form->select(
                         'type',
@@ -54,51 +45,67 @@
                     ) ?>
                 </div>
 
-            </div>
+                <div class="kb-col kb-col-6">
+                    <?= $this->form->label(t('UOM'), 'target_unit') ?>
+                    <?= $this->form->text('target_unit', $values, $errors) ?>
+                </div>
 
-            <!-- Target + Actual -->
-            <div class="kb-row">
-
-                <div class="kb-col-2">
+                <div class="kb-col kb-col-6">
                     <?= $this->form->label(t('Target'), 'target') ?>
                     <?= $this->form->text('target', $values, $errors) ?>
                 </div>
-
-                <div class="kb-col-2">
+                
+                <div class="kb-col kb-col-6">
                     <?= $this->form->label(t('Actual'), 'actual') ?>
                     <?= $this->form->text('actual', $values, $errors) ?>
                 </div>
 
-                <div class="kb-col-2">
-                        <?= $this->form->label(t('Status'), 'status') ?>
-                        <?= $this->form->select(
-                            'status',
-                            [
-                                'PENDING' => t('PENDING'),
-                                'ONGOING' => t('ONGOING'),
-                                'DONE' => t('DONE'),
-                            ],
-                            $values,
-                            $errors
-                        ) ?>
-                    </div>
+                <div class="kb-col kb-col-6">
+                    <?= $this->form->label(t('Status'), 'status') ?>
+                    <?= $this->form->select(
+                        'status',
+                        [
+                            'PLANNED' => t('PLANNED'),
+                            'SCHEDULED' => t('SCHEDULED'),
+                            'PENDING' => t('PENDING'),
+                            'ONGOING' => t('ONGOING'),
+                            'DONE' => t('DONE'),
+                        ],
+                        $values,
+                        $errors
+                    ) ?>
+                </div>
 
+                <div class="kb-col kb-col-6">
+                    <?= $this->form->label(t('Assign Task'), 'task_id') ?>
+                    <?= $this->form->select('task_id', $taskOptions, $values, $errors) ?>
+                </div>
+
+                <div class="kb-col kb-col-6">                    
+                    <?= $this->form->label(t('KPI Point'), 'task_point') ?>
+                    <?= $this->form->text('task_point', $values, $errors) ?>
+                </div>
+
+                <div class="kb-col kb-col-6">
+                    <?= $this->form->date(t('Timeline Started'), 'timeline_started', $values, $errors) ?>
+                </div>
+
+                <div class="kb-col kb-col-6">
+                    <?= $this->form->date(t('Timeline Completed'), 'timeline_completed', $values, $errors) ?>
+                </div>
             </div>
-
         </div>
-
-        <div class="kb-form-footer">
-
-            <button type="submit" class="btn btn-blue">
-                <?= t('Save KPI') ?>
-            </button>
-
-            <a href="#" class="btn js-modal-close">
-                <?= t('Cancel') ?>
-            </a>
-
-        </div>
-
     </div>
 
+    <div class="kb-form-footer">
+
+        <button type="submit" class="btn btn-blue">
+            <?= t('Save') ?>
+        </button>
+
+        <a href="#" class="btn js-modal-close">
+            <?= t('Cancel') ?>
+        </a>
+
+    </div>
 </div>

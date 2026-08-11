@@ -27,7 +27,6 @@
 
 .kb-table thead th {
     padding: 12px 14px;
-    text-align: left;
     font-weight: 600;
     border-bottom: 2px solid #ddd;
     white-space: nowrap;
@@ -36,6 +35,33 @@
 /* ==========================================
    Body
 ========================================== */
+
+.kb-table .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    width: 100%;
+}
+
+.kb-table .click-truncate {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.kb-table .click-truncate.expanded {
+    position: absolute;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    white-space: normal;
+    max-width: 300px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+}
 
 .kb-table tbody td {
     padding: 12px 14px;

@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const done = parseInt(element.dataset.done) || 0;
     const ongoing = parseInt(element.dataset.ongoing) || 0;
     const pending = parseInt(element.dataset.pending) || 0;
+    const scheduled = parseInt(element.dataset.scheduled) || 0;
+    const planned = parseInt(element.dataset.planned) || 0;
 
     const taskTrendLabel = JSON.parse(element.dataset.tasktrendlabel);
     const taskTrendData = JSON.parse(element.dataset.tasktrenddata);
@@ -30,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (kpiCanvas) {
 
-        const total = completed + open + overdue;
+        const total = done + ongoing + pending;
 
         const chartData = total === 0
             ? {
@@ -42,13 +44,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 }]
             }
             : {
-                labels: ["Done", "Ongoing", "Pending"],
+                labels: ["Done", "Ongoing", "Pending", "Planned", "Scheduled"],
                 datasets: [{
-                    data: [done, ongoing, pending],
+                    data: [done, ongoing, pending, planned, scheduled],
                     backgroundColor: [
-                        "#43A047",
-                        "#f2ff00",
-                        "#E53935"
+                        "#43A047", // DONE - green
+                        "#F2C94C", // ONGOING - yellow
+                        "#E53935", // PENDING - red
+                        "#9E9E9E", // PLANNED - gray
+                        "#2196F3"  // SCHEDULED - blue
                     ],
                     borderColor: "#ffffff", 
                     borderWidth: 2

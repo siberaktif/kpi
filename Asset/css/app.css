@@ -83,18 +83,26 @@
 .min-h-200{min-height:200px;}
 
 /* Container */
-.kb-container{
-    width:100%;
-    margin:auto;
-    padding:0 16px;
+.kb-container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 5rem;
+    padding-right: 5rem;
+    box-sizing: border-box;
 }
 
 .kb-container-sm{max-width:540px;}
 .kb-container-md{max-width:720px;}
 .kb-container-lg{max-width:960px;}
 .kb-container-xl{max-width:1140px;}
-.kb-container-fluid{
-    width:100%;
+
+.kb-container-fluid {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
 }
 
 /* Display */
@@ -158,6 +166,66 @@
 .border-top{border-top:1px solid #ddd;}
 .border-bottom{border-bottom:1px solid #ddd;}
 
+.bg-primary {
+    background-color: #0d6efd !important;
+    color: #fff;
+}
+
+.bg-secondary {
+    background-color: #6c757d !important;
+    color: #fff;
+}
+
+.bg-success {
+    background-color: #198754 !important;
+    color: #fff;
+}
+
+.bg-danger {
+    background-color: #dc3545 !important;
+    color: #fff;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000;
+}
+
+.bg-info {
+    background-color: #0dcaf0 !important;
+    color: #000;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+    color: #000;
+}
+
+.bg-dark {
+    background-color: #212529 !important;
+    color: #fff;
+}
+
+.bg-white {
+    background-color: #fff !important;
+    color: #000;
+}
+
+.bg-transparent {
+    background-color: transparent !important;
+}
+
+.bg-primary *,
+.bg-success *,
+.bg-danger * {
+    color: inherit !important;
+}
+
+.bg-warning *,
+.bg-info * {
+    color: inherit !important;
+}
+
 /* shadow */
 .shadow-sm{
     box-shadow:0 1px 2px rgba(0,0,0,.08);
@@ -171,3 +239,143 @@
     box-shadow:0 5px 20px rgba(0,0,0,.15);
 }
 
+/* ==========================================
+   List Group
+   ========================================== */
+
+.kb-list-group {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
+.kb-list-group-item {
+    position: relative;
+    display: block;
+    padding: 0.75rem 1.25rem;
+    color: #212529;
+    text-decoration: none;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+}
+
+.kb-list-group-item:first-child {
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+}
+
+.kb-list-group-item:last-child {
+    border-bottom-left-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.kb-list-group-item + .kb-list-group-item {
+    border-top-width: 0;
+}
+
+.kb-list-group-flush {
+    border: 0;
+}
+
+.kb-list-group-flush .kb-list-group-item {
+    position: relative;
+    display: block;
+    padding: 10px 0;
+    background-color: transparent;
+    border: 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.kb-list-group-flush .kb-list-group-item:first-child {
+    border-top: 0;
+}
+
+.kb-list-group-flush .kb-list-group-item:last-child {
+    border-bottom: 0;
+}
+
+.kb-list-group-clean {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    border: 0;
+}
+
+.kb-list-group-clean .kb-list-group-item {
+    display: block;
+    position: relative;
+    padding: 10px 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+/* Header */
+.kb-list-head {
+    padding: 10px 0;
+    margin: 0;
+    font-weight: bold;
+    background: transparent;
+    border: 0;
+}
+
+/* Body */
+.kb-list-body {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+}
+
+/* Body items */
+.kb-list-body .kb-list-group-item {
+    display: block;
+    position: relative;
+    padding: 10px 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+}
+
+/* Footer */
+.kb-list-footer {
+    padding: 10px 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+}
+
+@media (min-width: 768px) {
+    .kb-container-fluid {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .kb-container-fluid {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .kb-container {
+        width: 750px;
+    }
+}
+
+@media (min-width: 992px) {
+    .kb-container {
+        width: 970px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .kb-container {
+        width: 1170px;
+    }
+}

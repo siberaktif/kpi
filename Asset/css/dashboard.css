@@ -190,10 +190,6 @@
   height: 320px;
 }
 
-/* ==========================================================
-   KPI TABLE
-   ========================================================== */
-
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -203,36 +199,6 @@
 
 .panel-header h3 {
   margin: 0;
-}
-
-.dashboard-panel table {
-  width: 100%;
-
-  border-collapse: collapse;
-}
-
-.dashboard-panel table th {
-  background: #f8f9fa;
-
-  color: #555;
-
-  padding: 12px;
-
-  border-bottom: 2px solid #e6e6e6;
-
-  text-align: left;
-
-  font-weight: 600;
-}
-
-.dashboard-panel table td {
-  padding: 12px;
-
-  border-bottom: 1px solid #eee;
-}
-
-.dashboard-panel table tbody tr:hover {
-  background: #fafcff;
 }
 
 /* ==========================================================

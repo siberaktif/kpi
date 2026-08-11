@@ -4,7 +4,7 @@
 <div class="dashboard-header">
     <div class="dashboard-project-selector">
         <label>
-            <i class="fa fa-folder-open"></i>
+            <i class="fa fa-folder-open"></i> 
             <?= t('Project') ?>
         </label>
         <select id="projectSwitcher" class="form-control">
@@ -15,9 +15,10 @@
             <?php endforeach ?>
         </select>
     </div>
-    <div class="dashboard-actions">
-        <?= $this->url->link(
-            '<i class="fa fa-cogs"></i> '.t('Manage KPI'),
+    <div class="btn">
+        <?= $this->url->icon(
+            'cogs',
+            t('Manage KPI'),
             'KPIController',
             'index',
             [
@@ -25,7 +26,6 @@
                 'plugin' => 'KPI'
             ],
             false,
-            'btn'
         ) ?>
 
     </div>
@@ -185,6 +185,8 @@
         data-done="<?= $kpiStats['done'] ?>" 
         data-ongoing="<?= $kpiStats['ongoing'] ?>" 
         data-pending="<?= $kpiStats['pending'] ?>"
+        data-planned="<?= $kpiStats['planned'] ?>"
+        data-scheduled="<?= $kpiStats['scheduled'] ?>"
         data-taskTrendLabel='<?= json_encode($taskTrend['labels']) ?>'
         data-taskTrendData='<?= json_encode($taskTrend['percentage']) ?>'
         data-progress="<?= $stats['progress'] ?>">

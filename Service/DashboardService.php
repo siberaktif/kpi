@@ -5,6 +5,154 @@ use Kanboard\Core\Base;
 
 class DashboardService extends Base
 {
+    private function parseSearchDate(string $search): ?array
+    {
+        $search = trim($search);
+
+        if ($search === '') {
+            return null;
+        }
+
+        $currentYear = date('Y');
+
+        /*
+        * ---------------------------------------------------------
+        * YYYY-MM-DD
+        * Example: 2026-07-29
+        * ---------------------------------------------------------
+        */
+        if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}$/', $search)) {
+
+            $timestamp = strtotime($search);
+
+            if ($timestamp !== false) {
+                return [
+                    'start' => strtotime(date('Y-m-d 00:00:00', $timestamp)),
+                    'end'   => strtotime(date('Y-m-d 23:59:59', $timestamp)),
+                ];
+            }
+        }
+
+        /*
+        * ---------------------------------------------------------
+        * MM/DD/YYYY
+        * Example: 07/29/2026
+        * ---------------------------------------------------------
+        */
+        if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $search)) {
+
+            $timestamp = strtotime($search);
+
+            if ($timestamp !== false) {
+                return [
+                    'start' => strtotime(date('Y-m-d 00:00:00', $timestamp)),
+                    'end'   => strtotime(date('Y-m-d 23:59:59', $timestamp)),
+                ];
+            }
+        }
+
+        /*
+        * ---------------------------------------------------------
+        * Month Day, Year
+        * Example: July 29, 2026
+        * ---------------------------------------------------------
+        */
+        if (preg_match(
+            '/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s*\d{4}$/i',
+            $search
+        )) {
+
+            // Remove comma
+            $dateString = str_replace(',', '', $search);
+
+            $timestamp = strtotime($dateString);
+
+            if ($timestamp !== false) {
+                return [
+                    'start' => strtotime(date('Y-m-d 00:00:00', $timestamp)),
+                    'end'   => strtotime(date('Y-m-d 23:59:59', $timestamp)),
+                ];
+            }
+        }
+
+        /*
+        * ---------------------------------------------------------
+        * Month Day
+        * Example: July 29
+        *
+        * Uses current year.
+        * ---------------------------------------------------------
+        */
+        if (preg_match(
+            '/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}$/i',
+            $search
+        )) {
+
+            $timestamp = strtotime($search . ' ' . $currentYear);
+
+            if ($timestamp !== false) {
+                return [
+                    'start' => strtotime(date('Y-m-d 00:00:00', $timestamp)),
+                    'end'   => strtotime(date('Y-m-d 23:59:59', $timestamp)),
+                ];
+            }
+        }
+
+        /*
+        * ---------------------------------------------------------
+        * Month Year
+        * Example: July 2026
+        * ---------------------------------------------------------
+        */
+        if (preg_match(
+            '/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$/i',
+            $search
+        )) {
+
+            $timestamp = strtotime('1 ' . $search);
+
+            if ($timestamp !== false) {
+
+                $dateStart = strtotime(date('Y-m-01 00:00:00', $timestamp));
+                $dateEnd   = strtotime(date('Y-m-t 23:59:59', $timestamp));
+
+                return [
+                    'start' => $dateStart,
+                    'end'   => $dateEnd,
+                ];
+            }
+        }
+
+        /*
+        * ---------------------------------------------------------
+        * Month only
+        * Example: July
+        *
+        * Uses current year.
+        * ---------------------------------------------------------
+        */
+        if (preg_match(
+            '/^(January|February|March|April|May|June|July|August|September|October|November|December)$/i',
+            $search
+        )) {
+
+            $timestamp = strtotime('1 ' . $search . ' ' . $currentYear);
+
+            if ($timestamp !== false) {
+
+                $dateStart = strtotime(date('Y-m-01 00:00:00', $timestamp));
+                $dateEnd   = strtotime(date('Y-m-t 23:59:59', $timestamp));
+
+                return [
+                    'start' => $dateStart,
+                    'end'   => $dateEnd,
+                ];
+            }
+        }
+
+        return null;
+    }
+
     public function getProjectStats($projectId)
     {
         $completed = $this->db->table('tasks')
@@ -40,23 +188,34 @@ class DashboardService extends Base
 
     public function getProjectTable(int $projectId, ?string $status = null): array
     {
+        $search = trim($this->request->getStringParam('search'));
+
         $sql = "
-        SELECT
-            t.*,
-            u.username AS assignee_name,
-            c.title AS column_name,
-            co.comment_count
-        FROM tasks t
-        LEFT JOIN users u
-            ON u.id = t.owner_id
-        LEFT JOIN columns c
-            ON c.id = t.column_id
-       LEFT JOIN (
-            SELECT task_id, COUNT(*) AS comment_count
-            FROM comments
-            GROUP BY task_id
-        ) co ON co.task_id = t.id
-        WHERE t.project_id = ?
+            SELECT
+                t.id,
+                t.title,
+                t.description,
+                t.date_completed,
+                t.date_due,
+                t.column_id,
+                t.owner_ms,
+                u.id AS assignee_id,
+                u.username AS assignee_username,
+                u.name AS assignee_name,
+                u.email AS assignee_email,
+                c.title AS column_name,
+                co.comment_count
+            FROM tasks t
+            LEFT JOIN users u
+                ON u.id = t.owner_id
+            LEFT JOIN columns c
+                ON c.id = t.column_id
+            LEFT JOIN (
+                SELECT task_id, COUNT(*) AS comment_count
+                FROM comments
+                GROUP BY task_id
+            ) co ON co.task_id = t.id
+            WHERE t.project_id = ?
         ";
 
         $params = [$projectId];
@@ -77,16 +236,108 @@ class DashboardService extends Base
                 AND t.date_due > 0
                 AND t.date_due < ?
             ";
-                $params[]  = time();
+
+                $params[] = time();
                 break;
 
             default:
                 return [];
         }
 
-        $sql .= " ORDER BY t.date_creation DESC";
+        /*
+        * SEARCH
+        */
+        if (str_starts_with($search, 'KPI:')) {
+            $search    = trim(substr($search, 4));
+            $dateRange = $this->parseSearchDate($search);
+
+            if ($dateRange !== null) {
+
+                $searchDate = date('Y-m-d', $dateRange['start']);
+
+                $sql .= "
+                    AND (
+                        DATE(FROM_UNIXTIME(t.date_started)) = ?
+                        OR
+                        DATE(FROM_UNIXTIME(t.date_due)) = ?
+                    )
+                ";
+
+                $params[] = $searchDate;
+                $params[] = $searchDate;
+
+            } else {
+
+                // Normal text search
+                $sql .= "
+                    AND (
+                        t.title LIKE ?
+                        OR t.description LIKE ?
+                        OR u.username LIKE ?
+                        OR c.title LIKE ?
+                    )
+                ";
+
+                $searchParam = '%' . $search . '%';
+
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+            }
+        }
+
+        $sql .= " ORDER BY t.date_started";
 
         return $this->db->execute($sql, $params)->fetchAll();
+    }
+
+    public function getTaskList(int $projectId, int $taskId = 0)
+    {
+        $query = $this->db
+            ->table('tasks')
+            ->columns('id', 'title', 'description', 'date_started', 'date_due')
+            ->eq('project_id', $projectId);
+
+        if ($taskId > 0) {
+            return $query
+                ->eq('id', $taskId)
+                ->findOne();
+        }
+
+        return $query->findAll();
+    }
+
+    public function getColumnTaskList(int $projectId, int $taskId = 0)
+    {
+        $query = $this->db
+            ->table('tasks')
+            ->columns('tasks.*', 'c.title AS column_name')
+            ->left('columns', 'c', 'id', 'tasks', 'column_id')
+            ->eq('c.project_id', $projectId);
+
+        if ($taskId > 0) {
+            return $query
+                ->eq('tasks.id', $taskId)
+                ->findOne();
+        }
+
+        return $query->findAll();
+    }
+
+    public function getProjectList(int $projectId = 0)
+    {
+        $query = $this->db
+            ->table('projects')
+            ->columns('id', 'name');
+
+        if ($projectId > 0) {
+            return $query
+                ->eq('id', $projectId)
+                ->findOne();
+        }
+
+        return $query->findAll();
     }
 
     public function getTaskStatusChart($projectId)
@@ -111,10 +362,12 @@ class DashboardService extends Base
             ->findAll();
 
         $kpiStats = [
-            'done'    => 0,
-            'ongoing' => 0,
-            'pending' => 0,
-            'kpiProg' => 0,
+            'done'      => 0,
+            'ongoing'   => 0,
+            'pending'   => 0,
+            'scheduled' => 0,
+            'planned'   => 0,
+            'kpiProg'   => 0,
         ];
 
         $total_kpi = 0;
@@ -136,6 +389,14 @@ class DashboardService extends Base
 
                 case 'PENDING':
                     $kpiStats['pending'] = $count;
+                    break;
+                
+                case 'SCHEDULED':
+                    $kpiStats['scheduled'] = $count;
+                    break;
+                
+                case 'PLANNED':
+                    $kpiStats['planned'] = $count;
                     break;
             }
         }

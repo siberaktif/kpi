@@ -18,6 +18,7 @@ class TaskController extends BaseController
                     'tasks'       => $tasks,
                     'title'       => $project['name'],
                     'description' => $this->helper->projectHeader->getDescription($project),
+                    'assigneeAvatarService' => $this->container['assigneeAvatarService'],
                 ]
             )
         );
@@ -36,6 +37,7 @@ class TaskController extends BaseController
                     'tasks'       => $tasks,
                     'title'       => $project['name'],
                     'description' => $this->helper->projectHeader->getDescription($project),
+                    'assigneeAvatarService' => $this->container['assigneeAvatarService'],
                 ]
             )
         );
@@ -54,6 +56,7 @@ class TaskController extends BaseController
                     'tasks'       => $tasks,
                     'title'       => $project['name'],
                     'description' => $this->helper->projectHeader->getDescription($project),
+                    'assigneeAvatarService' => $this->container['assigneeAvatarService'],
                 ]
             )
         );
@@ -73,9 +76,29 @@ class TaskController extends BaseController
 
         $this->response->html(
             $this->template->render('KPI:kpi/task_comments', [
-                'task' => $task,
+                'task'     => $task,
                 'comments' => $comments,
             ])
         );
+    }
+
+    public function taskAssign()
+    {
+        $id           = $this->request->getIntegerParam('id');
+        $project_id   = $this->request->getIntegerParam('project_id');
+        $project_name = $this->request->getIntegerParam('project_name');
+
+        $task    = $this->dashboardService->getTaskList($project_id, $id);
+        $column  = $this->dashboardService->getColumnTaskList($project_id, $id);
+        $project = $this->dashboardService->getProjectList($project_id);
+
+        $this->response->html(
+            $this->template->render('KPI:kpi/task_assign', [
+                'task'    => $task,
+                'project' => $project,
+                'column'  => $column,
+            ])
+        );
+
     }
 }

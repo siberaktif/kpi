@@ -18,7 +18,7 @@
 
         <div class="card shadow-sm">
 
-            <div class="card-header bg-primary text-white">
+            <div class="card-header text-white">
                 <?= t('Task List') ?>
             </div>
 
@@ -28,7 +28,6 @@
 
                     <thead class="table-light">
                     <tr>
-                        <th width="70">#</th>
                         <th><?= t('Title') ?></th>
                         <th><?= t('Assignee') ?></th>
                         <th><?= t('Start Date') ?></th>
@@ -42,23 +41,92 @@
                     <?php foreach ($tasks as $task): ?>
 
                         <tr>
-
-                            <td><?= $task['id'] ?></td>
-
                             <td>
-                                <?= $this->url->link(
-                                    $this->text->e($task['title']),
-                                    'TaskViewController',
-                                    'show',
+                            <?php if (!empty($task['description'])): ?>
+                                <?= $this->modal->small(
+                                    'file',
+                                    '',
+                                    'BoardTooltipController',
+                                    'description',
                                     [
                                         'task_id' => $task['id'],
-                                        'project_id' => $project['id'],
+                                        'project_id' => $task['project_id'],
                                     ]
                                 ) ?>
+                                <?php else: ?>
+                                    <i class="fa fa-file ms-1 me-1" style="color: #6c757da0"></i>
+                                <?php endif; ?>
+
+                                <div class="dropdown">
+                                    <a href="#" class="dropdown-menu dropdown-menu-link-icon">
+                                        <strong>#<?= $this->text->e($task['id']) ?>
+                                            <i class="fa fa-caret-down"></i>
+                                        </strong>
+                                    </a>
+
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <?= $this->modal->large(
+                                                'edit',
+                                                t('Edit the task'),
+                                                'TaskModificationController',
+                                                'edit',
+                                                [
+                                                    'task_id' => $task['id'],
+                                                    'project_id' => $project['id'],
+                                                ],
+                                                false,
+                                                '',
+                                                true
+                                            ) ?>
+                                        </li>
+
+                                        <li>
+                                            <?= $this->modal->medium(
+                                                'comment',
+                                                t('Add a comment'),
+                                                'CommentController',
+                                                'create',
+                                                [
+                                                    'task_id' => $task['id'],
+                                                    'project_id' => $project['id'],
+                                                ],
+                                                false,
+                                                '',
+                                                true
+                                            ) ?>
+                                        </li>
+                                        <li>
+                                            <?= $this->modal->medium(
+                                                'trash',
+                                                t('Remove'),
+                                                'taskSuppressionController',
+                                                'confirm',
+                                                [
+                                                    'task_id' => $task['id']
+                                                ],
+                                                false,
+                                                '',
+                                                true
+                                            ) ?>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <?= $this->url->link($this->text->e($task['title']),'TaskViewController','show',
+                                [
+                                    'task_id' => $task['id'],
+                                    'project_id' => $project['id']
+                                ],
+                                'task-board-title') ?>
                             </td>
 
                             <td>
-                                <?= $task['assignee_name'] ?: '-' ?>
+                                <?= $assigneeAvatarService->renderAssignees(
+                                    $task['assignee_id'],
+                                    $task['owner_ms'] ?? null,
+                                    'avatar-inline',
+                                    20
+                                ) ?: t('-') ?>
                             </td>
 
                             <td>
@@ -75,14 +143,13 @@
 
                             <td>
                                 <?php if (!empty($task['comment_count'])): ?>
-                                <?= $this->modal->small(
+                                <?= $this->modal->medium(
                                     'comments',
                                     t('Read'). ' ('.$task['comment_count'].')',
-                                    'TaskController', 
-                                    'comments',
+                                    'CommentListController', 
+                                    'show',
                                     array(
-                                        'task_id' => $task['id'],
-                                        'plugin' => 'KPI'
+                                        'task_id' => $task['id']
                                     )
                                 ) ?>
                                 <?php else: ?>

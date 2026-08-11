@@ -1,3 +1,8 @@
 a[href*="TaskViewController"] {
     text-decoration: none;
+    color:black
+}
+
+a[href*="TaskViewController"]:hover {
+    text-decoration: underline;
 }
