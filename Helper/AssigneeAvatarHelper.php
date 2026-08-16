@@ -1,37 +1,60 @@
 <?php
+
 namespace Kanboard\Plugin\KPI\Helper;
 
 use Kanboard\Helper\AvatarHelper;
 
 class AssigneeAvatarHelper extends AvatarHelper
 {
+    /**
+     * Optional group_assign model.
+     *
+     * null when group_assign is not installed.
+     */
+    private $multiselectMemberModel = null;
+
+    /**
+     * Set the optional multiselect member model.
+     */
+    public function setMultiselectMemberModel($model): void
+    {
+        $this->multiselectMemberModel = $model;
+    }
+
+    /**
+     * Render primary + additional assignees.
+     */
     public function renderAssignees(
         ?int $assigneeId,
         $ownerMs = null,
         string $css = 'avatar-inline',
         int $size = 20
     ): string {
-        $html  = '';
+        $html = '';
         $users = [];
 
         // Additional assignees
-        if (! empty($ownerMs)) {
+        // Only available when group_assign is installed.
+        if (
+            !empty($ownerMs) &&
+            $this->multiselectMemberModel !== null
+        ) {
             $assignees = $this->multiselectMemberModel->getMembers($ownerMs);
 
             foreach ($assignees as $assignee) {
                 $user = $this->userModel->getById($assignee['user_id']);
 
-                if (! empty($user)) {
+                if (!empty($user)) {
                     $users[] = $user;
                 }
             }
         }
 
         // Primary assignee — always last
-        if (! empty($assigneeId)) {
+        if (!empty($assigneeId)) {
             $user = $this->userModel->getById($assigneeId);
 
-            if (! empty($user)) {
+            if (!empty($user)) {
                 $users[] = $user;
             }
         }
@@ -65,17 +88,24 @@ class AssigneeAvatarHelper extends AvatarHelper
         return $html;
     }
 
+    /**
+     * Render only additional assignees.
+     *
+     * Returns empty string when group_assign is unavailable.
+     */
     public function renderMultiple(
         $ownerMs,
         string $css = 'avatar-inline',
         int $size = 20
     ): string {
-        if (empty($ownerMs)) {
+        if (
+            empty($ownerMs) ||
+            $this->multiselectMemberModel === null
+        ) {
             return '';
         }
 
-        $assignees = $this->multiselectMemberModel
-            ->getMembers($ownerMs);
+        $assignees = $this->multiselectMemberModel->getMembers($ownerMs);
 
         $html = '';
 

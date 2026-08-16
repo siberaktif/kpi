@@ -1,4 +1,3 @@
-
-<li <?= $this->app->checkMenuSelection('KPIController') ?>>
-    <?= $this->url->icon('bar-chart', t('KPI'), 'KPIController', 'project', array('project_id' => $project['id'], 'search' => $filters['search'], 'plugin' => 'KPI'), false, 'view-kpi', t('Keyboard shortcut: "%s"', 'v k')) ?> 
+<li <?= $this->app->checkMenuSelection('DashboardController') ?>>
+    <?= $this->url->icon('bar-chart', t('KPI'), 'DashboardController', 'project', array('project_id' => $project['id'], 'plugin' => 'KPI'), false, 'view-kpi', t('Keyboard shortcut: "%s"', 'v k')) ?> 
 </li>

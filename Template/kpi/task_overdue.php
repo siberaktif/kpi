@@ -1,13 +1,35 @@
 <?= $this->projectHeader->render($project,'TaskController','task_overdue',false,'KPI');?>
+<?php
+$sortUrl = function ($field) use ($project, $sort, $direction) {
+    return $this->url->href(
+        'TaskController',
+        'task_overdue',
+        [
+            'project_id' => $project['id'],
+            'plugin' => 'KPI',
+            'sort' => $field,
+            'direction' => (
+                $sort === $field && $direction === 'asc'
+                    ? 'desc'
+                    : 'asc'
+            ),
+        ]
+    );
+};
+
+$sortIcon = function ($field) use ($sort, $direction) {
+    if ($sort !== $field) {
+        return '<i class="fa fa-sort text-muted"></i>';
+    }
+
+    return sprintf(
+        '<i class="fa fa-sort-%s"></i>',
+        $direction === 'asc' ? 'up' : 'down'
+    );
+};
+?>
 
 <div class="container">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-0"><?= t('Overdue Tasks') ?> (<?= count($tasks) ?>)</h2>
-        </div>
-    </div>
-
     <?php if (empty($tasks)): ?>
 
         <div class="alert alert-info">
@@ -18,7 +40,7 @@
 
         <div class="card shadow-sm">
 
-            <div class="card-header text-white">
+            <div class="card-header text-white mb-2">
                 <?= t('Task List') ?>
             </div>
 
@@ -26,10 +48,31 @@
                 <table class="kb-table">
                     <thead class="table-light">
                     <tr>
-                        <th><?= t('Title') ?></th>
-                        <th width="150"><?= t('Assignee') ?></th>
-                        <th width="200"><?= t('Start Date') ?></th>
-                        <th width="200"><?= t('Due Date') ?></th>
+                        <th>
+                            <a href="<?= $sortUrl('title') ?>" class="kpi-sort-link">
+                                <?= t('Title') ?>
+                                <?= $sortIcon('title') ?>
+                            </a>
+                        </th>
+                        <th width="150">
+                            <a href="<?= $sortUrl('assignee') ?>" class="kpi-sort-link">
+                                <?= t('Assignee') ?>
+                                <?= $sortIcon('assignee') ?>
+                            </a>
+                        </th>
+                        <th width="200">
+                            <a href="<?= $sortUrl('date_started') ?>" class="kpi-sort-link">
+                                <?= t('Start Date') ?>
+                                <?= $sortIcon('date_started') ?>
+                            </a>
+                        </th>
+
+                        <th width="200">
+                            <a href="<?= $sortUrl('date_due') ?>" class="kpi-sort-link">
+                                <?= t('Due Date') ?>
+                                <?= $sortIcon('date_due') ?>
+                            </a>
+                        </th>
                     </tr>
                     </thead>
 
@@ -95,6 +138,20 @@
                                         </li>
                                         <li>
                                             <?= $this->modal->medium(
+                                                'times',
+                                                t('Close this task'),
+                                                'TaskStatusController',
+                                                'close',
+                                                [
+                                                    'task_id' => $task['id']
+                                                ],
+                                                false,
+                                                '',
+                                                true
+                                            ) ?>
+                                        </li>
+                                        <li>
+                                            <?= $this->modal->medium(
                                                 'trash',
                                                 t('Remove'),
                                                 'taskSuppressionController',
@@ -146,4 +203,8 @@
         </div>
 
     <?php endif; ?>
+
+    <div class="kpi-pagination mt-4">
+        <?= $paginator ?>
+    </div>
 </div>

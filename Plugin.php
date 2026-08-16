@@ -12,18 +12,6 @@ class Plugin extends Base
 
     public function initialize()
     {
-        $this->route->addRoute('/kpi', 'KPIController', 'index', 'KPI');
-        $this->route->addRoute('/kpi/create', 'KPIController', 'create', 'KPI');
-        $this->route->addRoute('/kpi/save', 'KPIController', 'save', 'KPI');
-        $this->route->addRoute('/kpi/edit/:id', 'KPIController', 'edit', 'KPI');
-        $this->route->addRoute('/kpi/update/:id', 'KPIController', 'update', 'KPI');
-        $this->route->addRoute('/kpi/remove/:id', 'KPIController', 'remove', 'KPI');
-
-        // Task Routes
-        $this->route->addRoute('/kpi/task_open', 'TaskController', 'task_open', 'KPI');
-        $this->route->addRoute('/kpi/task_overdue', 'TaskController', 'task_overdue', 'KPI');
-        $this->route->addRoute('/kpi/task_completed', 'TaskController', '       task_completed', 'KPI');
-
         $this->container['dashboardService'] = $this->container->factory(function ($c) {
             return new \Kanboard\Plugin\KPI\Service\DashboardService($c);
         });
@@ -41,29 +29,68 @@ class Plugin extends Base
         };
 
         $this->container['assigneeAvatarService'] = function ($c) {
-            return new \Kanboard\Plugin\KPI\Helper\AssigneeAvatarHelper($c);
+
+            $helper = new \Kanboard\Plugin\KPI\Helper\AssigneeAvatarHelper($c);
+
+            try {
+                $helper->setMultiselectMemberModel(
+                    $c['multiselectMemberModel']
+                );
+            } catch (\Exception $e) {
+                // Group Assign is not installed.
+            }
+
+            return $helper;
         };
+
+        //attach to header
+        if ($this->request->getStringParam('plugin') === 'KPI') {
+            $this->template->setTemplateOverride('header', 'KPI:header');
+            $this->template->setTemplateOverride('project_header/search', 'KPI:project_header/search');
+        }
+
+        $this->template->hook->attachCallable(
+            'template:board:task:footer',
+            'KPI:board/task_footer',
+            function ($task) {
+                $kpi = $this->kpiModel->getKpiAssignTasks((int) $task['id']);
+                return [
+                    'kpi' => $kpi,
+                ];
+            }
+        );
 
         $this->template->hook->attachCallable(
             'template:task:form:second-column',
             'KPI:task/form',
             function ($params) {
 
-                $selectedKpi = null;
-                $kpiPoints   = 0;
+                $selectedKpi   = null;
+                $kpiPoints     = 0;
+                $kpiTargetUnit = 0;
 
                 $taskId = $this->request->getIntegerParam('task_id');
 
-                if ($taskId === 0) {
-                    $projectId = $this->request->getIntegerParam('project_id');
-                } else {
+                if ($taskId > 0) {
                     $projectId = $this->projectDataService->getProjectIdByTaskId($taskId);
                     $kpiTask   = $this->kpiModel->getByTaskId($taskId);
 
                     if ($kpiTask) {
-                        $selectedKpi = $kpiTask['id'];
-                        $kpiPoints   = $kpiTask['task_point'];
+                        $selectedKpi   = $kpiTask['kpi_id'];
+                        $kpiPoints     = $kpiTask['task_point'];
+                        $kpiTargetUnit = $kpiTask['target_unit'];
                     }
+                } else {
+                    $projectId = $this->request->getIntegerParam('project_id');
+                }
+
+                if ($projectId <= 0) {
+                    return [
+                        'kpis'         => [],
+                        'selected_kpi' => null,
+                        'kpi_points'   => 0,
+                        'target_unit'  => '',
+                    ];
                 }
 
                 $kpis = $this->kpiModel->getAll($projectId);
@@ -72,6 +99,7 @@ class Plugin extends Base
                     'kpis'         => $kpis,
                     'selected_kpi' => $selectedKpi,
                     'kpi_points'   => $kpiPoints,
+                    'target_unit'  => $kpiTargetUnit,
                 ];
             }
         );
@@ -81,8 +109,6 @@ class Plugin extends Base
             function (&$values) {
 
                 $taskId = $this->request->getIntegerParam('task_id');
-                // $projectId = $this->request->getIntegerParam('project_id');
-                // $kpi_id = $this->request->getIntegerParam('kpi_id');
 
                 $kpiId = isset($values['kpi_id'])
                     ? (int) $values['kpi_id']
@@ -91,8 +117,6 @@ class Plugin extends Base
                 $points = isset($values['kpi_points'])
                     ? (float) $values['kpi_points']
                     : 0;
-
-                //$kpi_unit
 
                 if ($kpiId > 0 || $taskId > 0) {
                     $this->kpiModel->update(
@@ -130,13 +154,13 @@ class Plugin extends Base
 
         $this->hook->on(
             'model:task:creation:aftersave',
-            function ($taskId, $values) {
+            function ($taskId) {
 
                 $kpiId  = $this->kpiTaskValues['kpi_id'];
                 $points = $this->kpiTaskValues['points'];
 
                 if ($kpiId > 0 || $taskId > 0) {
-                    $this->kpiModel->update(
+                    $this->kpiModel->create(
                         $taskId,
                         $kpiId,
                         $points
@@ -149,13 +173,36 @@ class Plugin extends Base
         //when board closes
         $this->on('task.close', function ($task) {
 
+            $taskId = (int) $task['id'];
+
+            // Get submitted form values
+            $values = $this->request->getValues();
+
+            $kpiId = isset($values['kpi_id'])
+                ? (int) $values['kpi_id']
+                : 0;
+
+            $points = isset($values['kpi_points'])
+                ? (float) $values['kpi_points']
+                : 0;
+
+            //Debug;
+            // var_dump($values);
+
         });
 
         // Register Assets
         $this->hook->on(
-        'template:layout:css', [
-            'template' => 'plugins/KPI/Asset/css/kanboard-overrides.css',
-        ]);
+            'template:layout:css', [
+                'template' => 'plugins/KPI/Asset/css/kanboard-overrides.css',
+            ]);
+
+        $this->hook->on(
+            'template:layout:css',
+            [
+                'template' => 'plugins/KPI/Asset/fontawesome/css/all.min.css',
+            ]
+        );
 
         $this->hook->on('template:layout:js', [
             'template' => 'plugins/KPI/Asset/js/chart.min.js',
@@ -175,10 +222,9 @@ class Plugin extends Base
         $this->hook->on('template:layout:js', ['template' => 'plugins/KPI/Asset/js/table.js']);
 
         $this->template->hook->attach('template:project:dropdown', 'KPI:project/dropdown');
-        // $this->template->hook->attach('template:dashboard:sidebar', 'KPI:dashboard/sidebar');
+        $this->template->hook->attach('template:dashboard:page-header:menu', 'KPI:dashboard/menu');
 
         // Top Menu
-        //$this->template->hook->attach('template:header:dropdown', 'KPI:dashboard/menu');
         $this->template->hook->attach('template:project-header:view-switcher', 'KPI:project_header/views');
     }
 
@@ -204,6 +250,11 @@ class Plugin extends Base
 
     public function getCompatibleVersion()
     {
-        return '>=1.2.40';
+        return '>=1.2.53';
+    }
+
+    public function getPluginHomepage()
+    {
+        return 'https://github.com/rmsbal/kpi';
     }
 }

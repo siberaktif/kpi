@@ -77,11 +77,13 @@
                 </div>
 
                 <div class="kb-col kb-col-6">
+                    <?php $values['task_id'] = $taskId ?? 0;?>
                     <?= $this->form->label(t('Assign Task'), 'task_id') ?>
                     <?= $this->form->select('task_id', $taskOptions, $values, $errors) ?>
                 </div>
 
-                <div class="kb-col kb-col-6">                    
+                <div class="kb-col kb-col-6">
+                    <?php $values['task_point'] = $taskPoint ?? 0;?>                    
                     <?= $this->form->label(t('KPI Point'), 'task_point') ?>
                     <?= $this->form->text('task_point', $values, $errors) ?>
                 </div>
@@ -98,14 +100,6 @@
     </div>
 
     <div class="kb-form-footer">
-
-        <button type="submit" class="btn btn-blue">
-            <?= t('Save') ?>
-        </button>
-
-        <a href="#" class="btn js-modal-close">
-            <?= t('Cancel') ?>
-        </a>
-
+         <?= $this->modal->submitButtons() ?>
     </div>
 </div>

@@ -186,9 +186,24 @@ class DashboardService extends Base
         ];
     }
 
-    public function getProjectTable(int $projectId, ?string $status = null): array
-    {
+    public function getProjectTable(
+        int $projectId,
+        ?string $status = null,
+        int $page = 1,
+        int $limit = 10,
+        string $sort = 'date_started',
+        string $direction = 'desc'
+    ): array {
         $search = trim($this->request->getStringParam('search'));
+        $sort   = $this->request->getStringParam('sort', 'date_started');
+
+        $direction = strtolower($this->request->getStringParam('direction', 'desc'));
+
+        if (! in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'desc';
+        }
+
+        $offset = max(0, ($page - 1) * $limit);
 
         $sql = "
             SELECT
@@ -196,6 +211,7 @@ class DashboardService extends Base
                 t.title,
                 t.description,
                 t.date_completed,
+                t.date_started,
                 t.date_due,
                 t.column_id,
                 t.owner_ms,
@@ -287,25 +303,174 @@ class DashboardService extends Base
             }
         }
 
-        $sql .= " ORDER BY t.date_started";
+        $sortColumns = [
+            'title'        => 't.title',
+            'assignee'     => 'u.username',
+            'date_started' => 't.date_started',
+            'date_due'     => 't.date_due',
+            'comments'     => 'co.comment_count',
+            'column'       => 'c.title',
+        ];
+
+        $orderBy = $sortColumns[$sort] ?? 't.date_started';
+
+        $orderDirection = strtolower($direction) === 'desc'
+            ? 'DESC'
+            : 'ASC';
+
+        $sql .= sprintf(
+            ' ORDER BY %s %s LIMIT %d OFFSET %d',
+            $orderBy,
+            $orderDirection,
+            (int) $limit,
+            (int) $offset
+        );
 
         return $this->db->execute($sql, $params)->fetchAll();
     }
 
-    public function getTaskList(int $projectId, int $taskId = 0)
+    public function countProjectTable(
+        int $projectId,
+        ?string $status = null
+    ): int {
+        $search = trim($this->request->getStringParam('search'));
+
+        $sql = "
+        SELECT COUNT(DISTINCT t.id)
+        FROM tasks t
+
+        LEFT JOIN users u
+            ON u.id = t.owner_id
+
+        LEFT JOIN columns c
+            ON c.id = t.column_id
+
+        WHERE t.project_id = ?
+    ";
+
+        $params = [$projectId];
+
+        /*
+     * STATUS
+     */
+        switch ($status) {
+
+            case 'completed':
+                $sql .= " AND t.is_active = 0";
+                break;
+
+            case 'open':
+                $sql .= " AND t.is_active = 1";
+                break;
+
+            case 'overdue':
+                $sql .= "
+                AND t.is_active = 1
+                AND t.date_due > 0
+                AND t.date_due < ?
+            ";
+
+                $params[] = time();
+                break;
+
+            default:
+                return 0;
+        }
+
+        /*
+     * SEARCH
+     */
+        if (str_starts_with($search, 'KPI:')) {
+
+            $search = trim(substr($search, 4));
+
+            $dateRange = $this->parseSearchDate($search);
+
+            if ($dateRange !== null) {
+
+                $searchDate = date(
+                    'Y-m-d',
+                    $dateRange['start']
+                );
+
+                $sql .= "
+                AND (
+                    DATE(FROM_UNIXTIME(t.date_started)) = ?
+                    OR
+                    DATE(FROM_UNIXTIME(t.date_due)) = ?
+                )
+            ";
+
+                $params[] = $searchDate;
+                $params[] = $searchDate;
+
+            } else {
+
+                $sql .= "
+                AND (
+                    t.title LIKE ?
+                    OR t.description LIKE ?
+                    OR u.username LIKE ?
+                    OR c.title LIKE ?
+                )
+            ";
+
+                $searchParam = '%' . $search . '%';
+
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+            }
+        }
+
+        return (int) $this->db
+            ->execute($sql, $params)
+            ->fetchColumn();
+    }
+
+    public function getTaskList(int $projectId, int | array $ids = [])
     {
         $query = $this->db
             ->table('tasks')
-            ->columns('id', 'title', 'description', 'date_started', 'date_due')
-            ->eq('project_id', $projectId);
+            ->columns(
+                'tasks.id', 
+                'tasks.title', 
+                'tasks.description', 
+                'tasks.date_started', 
+                'tasks.date_due',
+                'c.title AS column_name',
+                'ka.kpi_id',
+                'ka.task_point'
+                )
+            ->left('kpi_assignment', 'ka', 'task_id', 'tasks', 'id')
+            ->left('columns', 'c', 'id', 'tasks', 'column_id')
+            ->eq('tasks.project_id', $projectId);
 
-        if ($taskId > 0) {
+        if (is_int($ids) && $ids > 0) {
             return $query
-                ->eq('id', $taskId)
+                ->eq('tasks.id', $ids)
                 ->findOne();
         }
 
+        if (is_array($ids) && ! empty($ids)) {
+            return $query
+                ->in('ka.task_id', $ids)
+                ->findAll();
+        }
+
         return $query->findAll();
+    }
+
+    public function getKpiAssignmentTasksIds(int $kpi_id): array
+    {
+        $rows = $this->db
+            ->table('kpi_assignment')
+            ->columns('task_id')
+            ->eq('kpi_id', $kpi_id)
+            ->findAll();
+
+        return array_column($rows, 'task_id');
     }
 
     public function getColumnTaskList(int $projectId, int $taskId = 0)
@@ -390,11 +555,11 @@ class DashboardService extends Base
                 case 'PENDING':
                     $kpiStats['pending'] = $count;
                     break;
-                
+
                 case 'SCHEDULED':
                     $kpiStats['scheduled'] = $count;
                     break;
-                
+
                 case 'PLANNED':
                     $kpiStats['planned'] = $count;
                     break;

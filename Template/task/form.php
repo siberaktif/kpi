@@ -13,14 +13,11 @@
         </option>
 
         <?php foreach ($kpis as $kpi): ?>
-
+            <?php $kpiTargetUnit = !empty($kpi['target_unit']) ? ' > ' .$kpi['target_unit'] : ''; ?>
             <option
                 value="<?= (int) $kpi['id'] ?>"
-                <?= (int) $selected_kpi === (int) $kpi['id']
-                    ? 'selected'
-                    : '' ?>
-            >
-                <?= $this->text->e($kpi['title']) ?>
+                <?= (int) $selected_kpi === (int) $kpi['id'] ? 'selected' : '' ?>>
+                <?= $this->text->e($kpi['title']. $kpiTargetUnit) ?>
             </option>
 
         <?php endforeach ?>
@@ -29,10 +26,10 @@
 
 
 <div class="form-group mt-3">
+    <?php $unit = !empty($target_unit) ? $target_unit : 'Task KPI Points'; ?>
     <label for="kpi_points">
-        <?= t('Task KPI Points') ?>
+        <?= t($unit) ?>
     </label>
-
     <input
         type="number"
         name="kpi_points"

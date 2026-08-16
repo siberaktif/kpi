@@ -101,6 +101,10 @@
   background: #9b59b6;
 }
 
+.dashboard-card.map .card-icon {
+  background: #a7a8a1;
+}
+
 .card-content {
   flex: 1;
 }
@@ -235,7 +239,6 @@
 
 .btn {
   border-radius: 6px;
-
   transition: 0.2s;
 }
 

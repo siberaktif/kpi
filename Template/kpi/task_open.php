@@ -1,30 +1,81 @@
 <?= $this->projectHeader->render($project,'TaskController','task_open',false,'KPI');?>
+<?php
+$sortUrl = function ($field) use ($project, $sort, $direction) {
+    return $this->url->href(
+        'TaskController',
+        'task_open',
+        [
+            'project_id' => $project['id'],
+            'plugin' => 'KPI',
+            'sort' => $field,
+            'direction' => (
+                $sort === $field && $direction === 'asc'
+                    ? 'desc'
+                    : 'asc'
+            ),
+        ]
+    );
+};
 
+$sortIcon = function ($field) use ($sort, $direction) {
+    if ($sort !== $field) {
+        return '<i class="fa fa-sort text-muted"></i>';
+    }
+
+    return sprintf(
+        '<i class="fa fa-sort-%s"></i>',
+        $direction === 'asc' ? 'up' : 'down'
+    );
+};
+?>
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-0"><?= t('Open Tasks') ?> (<?= count($tasks) ?>)</h2>
-        </div>
-    </div>
     <?php if (empty($tasks)): ?>
         <div class="alert alert-info">
             <?= t('No open tasks found.') ?>
         </div>
     <?php else: ?>
         <div class="card shadow-sm">
-            <div class="card-header text-white">
+            <div class="card-header text-white mb-2">
                 <?= t('Task List') ?>
             </div>
             <div class="kb-table-container">
                 <table class="kb-table">
                     <thead class="table-light">
-                    <tr>
-                        <th><?= t('Title') ?></th>
-                        <th><?= t('Assignee') ?></th>
-                        <th><?= t('Column') ?></th>
-                        <th><?= t('Start Date') ?></th>
-                        <th><?= t('Due Date') ?></th>
-                    </tr>
+                        <tr>
+                            <th>
+                                <a href="<?= $sortUrl('title') ?>" class="kpi-sort-link">
+                                    <?= t('Title') ?>
+                                    <?= $sortIcon('title') ?>
+                                </a>
+                            </th>
+                            <th width="150">
+                                <a href="<?= $sortUrl('assignee') ?>" class="kpi-sort-link">
+                                    <?= t('Assignee') ?>
+                                    <?= $sortIcon('assignee') ?>
+                                </a>
+                            </th>
+
+                            <th width="150">
+                                <a href="<?= $sortUrl('column') ?>" class="kpi-sort-link">
+                                    <?= t('Column') ?>
+                                    <?= $sortIcon('column') ?>
+                                </a>
+                            </th>
+
+                            <th width="210">
+                                <a href="<?= $sortUrl('date_started') ?>" class="kpi-sort-link">
+                                    <?= t('Start Date') ?>
+                                    <?= $sortIcon('date_started') ?>
+                                </a>
+                            </th>
+
+                            <th width="210">
+                               <a href="<?= $sortUrl('date_due') ?>" class="kpi-sort-link">
+                                    <?= t('Due Date') ?>
+                                    <?= $sortIcon('date_due') ?>
+                                </a>
+                            </th>
+                        </tr>
                     </thead>
                     <tbody>
                     <?php foreach ($tasks as $task): ?>
@@ -134,4 +185,8 @@
             </div>
         </div>
     <?php endif; ?>
-</div>
+
+    <div class="kpi-pagination mt-4">
+        <?= $paginator ?>
+    </div>
+</div>  

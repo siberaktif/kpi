@@ -1,5 +1,5 @@
 <?= $this->render('app/flash_message') ?>
-<?= $this->projectHeader->render($project,'KPIController','project',false,'KPI');?> 
+<?= $this->projectHeader->render($project,'KPIController','index',false,'KPI');?> 
 
 <div class="container">
     <div class="container mt-2 p-3 justify-between align-center d-flex">
@@ -25,8 +25,8 @@
         <table class="kb-table kb-table-striped">
             <thead>
                 <tr>
-                    <th><?= t('Activities / Task') ?></th>
-                    <th class="kb-text-center" style="width: 100px;"><?= t('Assign Task') ?></th>
+                    <th><?= t('Activities') ?></th>
+                    <th class="kb-text-center" style="width: 100px;"><?= t('Tasks') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('UOM') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Target') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Actual') ?></th>
@@ -55,6 +55,8 @@
                                         'edit',
                                         [
                                             'id' => $kpi['id'],
+                                            'task_id' => $getTask($kpi['id'])[0]['task_id'] ?? 0,
+                                            'task_point' => $getTask($kpi['id'])[0]['task_point'] ?? 0,
                                             'plugin' => 'KPI'
                                         ],
                                         false,
@@ -100,26 +102,24 @@
                     </td>
 
                     <td class="kb-text-center">
-                        <?php if($kpi['task_id'] > 0): ?>
-
+                        <?php foreach ($getTask((int) $kpi['id']) as $task): ?>
                             <div class="dropdown">
-
                                 <a href="#" class="dropdown-menu dropdown-menu-link-icon">
                                     <strong>
-                                        #<?= $kpi['task_id'] ?>
+                                        #<?= $task['task_id'] ?>
                                         <i class="fa fa-caret-down"></i>
                                     </strong>
                                 </a>
-
                                 <ul class="dropdown-menu">
                                     <li>
                                         <?= $this->modal->large(
                                             'arrow-right',
-                                            t($kpi['task_name']),
+                                            t('Open Assign Tasks'),
                                             'TaskController',
                                             'taskAssign',
                                             [
-                                                'id' => $kpi['task_id'],
+                                                'id' => $task['task_id'],
+                                                'kpi_id' => $task['kpi_id'],
                                                 'project_id' => $project['id'],
                                                 'plugin' => 'KPI'
                                             ],
@@ -130,7 +130,8 @@
                                     </li>
                                 </ul>
                             </div>
-                        <?php endif; ?>
+                        <?php break; ?>
+                        <?php endforeach ?>
                     </td>
 
                     <td class="click-truncate">
@@ -187,8 +188,8 @@
         <table class="kb-table kb-table-striped">
             <thead>
                 <tr>
-                    <th><?= t('Activities / Task') ?></th>
-                    <th class="kb-text-center" style="width: 100px;"><?= t('Assign Task') ?></th>
+                    <th><?= t('Activities') ?></th>
+                    <th class="kb-text-center" style="width: 100px;"><?= t('Tasks') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('UOM') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Target') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Actual') ?></th>
@@ -218,6 +219,8 @@
                                             'edit',
                                             [
                                                 'id' => $kpi['id'],
+                                                'task_id' => $getTask($kpi['id'])[0]['task_id'] ?? 0,
+                                                'task_point' => $getTask($kpi['id'])[0]['task_point'] ?? 0,
                                                 'plugin' => 'KPI'
                                             ],
                                             false,
@@ -263,26 +266,24 @@
                         </td>
 
                         <td class="kb-text-center">
-                            <?php if($kpi['task_id'] > 0): ?>
-
+                            <?php foreach ($getTask((int) $kpi['id']) as $task): ?>
                                 <div class="dropdown">
-
                                     <a href="#" class="dropdown-menu dropdown-menu-link-icon">
                                         <strong>
-                                            #<?= $kpi['task_id'] ?>
+                                            #<?= $task['task_id'] ?>
                                             <i class="fa fa-caret-down"></i>
                                         </strong>
                                     </a>
-
                                     <ul class="dropdown-menu">
                                         <li>
                                             <?= $this->modal->large(
                                                 'arrow-right',
-                                                t($kpi['task_name']),
+                                                t('Open Assign Tasks'),
                                                 'TaskController',
                                                 'taskAssign',
                                                 [
-                                                    'id' => $kpi['task_id'],
+                                                    'id' => $task['task_id'],
+                                                    'kpi_id' => $task['kpi_id'],
                                                     'project_id' => $project['id'],
                                                     'plugin' => 'KPI'
                                                 ],
@@ -293,7 +294,8 @@
                                         </li>
                                     </ul>
                                 </div>
-                            <?php endif; ?>
+                            <?php break; ?>
+                            <?php endforeach ?>
                         </td>
 
                         <td class="click-truncate">

@@ -5,22 +5,39 @@ use Kanboard\Controller\BaseController;
 
 class KPIController extends BaseController
 {
+    public function view()
+    {
+        $taskId    = $this->request->getIntegerParam('task_id');
+        $kpi       = $this->kpiModel->getKpiAssignTasks($taskId);
+
+        $this->response->html(
+            $this->template->render('KPI:kpi/view', [
+                'kpi' => $kpi,
+            ])
+        );
+    }
+
     public function index()
     {
-
         $project = $this->getProject();
+
+        $getTask = function ($kpi_id) {
+            return $this->db
+                ->table('kpi_assignment')
+                ->left('kpi_definition', 'kd', 'id', 'kpi_assignment', 'kpi_id')
+                ->eq('kpi_assignment.kpi_id', $kpi_id)
+                ->findAll();
+        };
 
         $kpis = $this->db
             ->table('kpi_definition')
             ->columns(
                 'kpi_definition.*',
-                't.title AS task_name',
-                'DATE(FROM_UNIXTIME(kpi_definition.timeline_started)) AS timeline_start',
-                'DATE(FROM_UNIXTIME(kpi_definition.timeline_completed)) AS timeline_complete'
+                'DATE(FROM_UNIXTIME(timeline_started)) AS timeline_start',
+                'DATE(FROM_UNIXTIME(timeline_completed)) AS timeline_complete'
             )
-            ->eq('kpi_definition.project_id', $project['id'])
-            ->left('tasks', 't', 'id', 'kpi_definition', 'task_id')
-            ->asc('kpi_definition.title')
+            ->eq('project_id', $project['id'])
+            ->asc('title')
             ->findAll();
 
         $project  = $this->getProject();
@@ -30,36 +47,11 @@ class KPIController extends BaseController
             $this->helper->layout->app(
                 'KPI:kpi/index',
                 [
-                    'project'     => $project,
-                    'projects'    => $projects,
-                    'kpis'        => $kpis,
-                    'title'       => $project['name'],
-                    'description' => $this->helper->projectHeader->getDescription($project),
-                ]
-            )
-        );
-    }
-
-    public function project()
-    {
-        $project  = $this->getProject();
-        $projects = $this->projectModel->getAll();
-
-        $stats     = $this->dashboardService->getProjectStats($project['id']);
-        $kpiStats  = $this->dashboardService->getKpiStats($project['id']);
-        $taskTrend = $this->dashboardService->getTaskTrend($project['id']);
-
-        $this->response->html(
-            $this->helper->layout->app(
-                'KPI:project/index',
-                [
-                    'project'     => $project,
-                    'projects'    => $projects,
-                    'stats'       => $stats,
-                    'kpiStats'    => $kpiStats,
-                    'taskTrend'   => $taskTrend,
-                    'title'       => $project['name'],
-                    'description' => $this->helper->projectHeader->getDescription($project),
+                    'project'  => $project,
+                    'projects' => $projects,
+                    'kpis'     => $kpis,
+                    'getTask'  => $getTask,
+                    'title'    => 'Manage KPI > ' . $project['name'],
                 ]
             )
         );
@@ -192,7 +184,9 @@ class KPIController extends BaseController
 
     public function edit()
     {
-        $id = $this->request->getIntegerParam('id');
+        $id        = $this->request->getIntegerParam('id');
+        $taskId    = $this->request->getIntegerParam('task_id');
+        $taskPoint = (float) $this->request->getStringParam('task_point');
 
         // Get KPI
         $kpi = $this->db
@@ -202,13 +196,7 @@ class KPIController extends BaseController
                 'p.id AS project_id',
                 'p.name AS project_name'
             )
-            ->left(
-                'projects',
-                'p',
-                'id',
-                'kpi_definition',
-                'project_id'
-            )
+            ->left('projects', 'p', 'id', 'kpi_definition', 'project_id')
             ->eq('kpi_definition.id', $id)
             ->findOne();
 
@@ -217,18 +205,12 @@ class KPIController extends BaseController
         }
 
         // Get project
-        $project = $this->projectModel->getById(
-            (int) $kpi['project_id']
-        );
+        $project = $this->projectModel->getById((int) $kpi['project_id']);
 
-        if (! $project) {
-            throw new \RuntimeException('Project not found');
-        }
+        if (! $project) {throw new \RuntimeException('Project not found');}
 
         // Get task options for this project
-        $taskOptions = $this->getTaskOptions(
-            (int) $kpi['project_id']
-        );
+        $taskOptions = $this->getTaskOptions((int) $kpi['project_id']);
 
         // Convert Unix timestamps to HTML date format
         $kpi['timeline_started'] = ! empty($kpi['timeline_started'])
@@ -245,6 +227,8 @@ class KPIController extends BaseController
                 'KPI:kpi/edit',
                 [
                     'values'      => $kpi,
+                    'taskId'      => $taskId,
+                    'taskPoint'   => $taskPoint,
                     'errors'      => [],
                     'taskOptions' => $taskOptions,
                     'project'     => $project,
@@ -258,6 +242,8 @@ class KPIController extends BaseController
         $id = $this->request->getIntegerParam('id');
 
         $values = $this->request->getValues();
+        $taskId = $values['task_id'];
+
         $errors = [];
 
         /*
@@ -276,7 +262,6 @@ class KPIController extends BaseController
             );
         }
 
-        
         /*
         * Validate date relationship
         */
@@ -337,9 +322,8 @@ class KPIController extends BaseController
         /*
         * Prepare update data
         */
-        $data = [
+        $kd_data = [
             'project_id'         => (int) $values['project_id'],
-            'task_id'            => (int) $values['task_id'],
             'title'              => trim($values['title']),
             'description'        => $values['description'] ?? '',
             'output'             => $values['output'] ?? '',
@@ -348,19 +332,30 @@ class KPIController extends BaseController
             'target'             => (float) ($values['target'] ?? 0),
             'actual'             => (float) ($values['actual'] ?? 0),
             'status'             => $values['status'] ?? '',
-            'task_point'         => (float) $values['task_point'],
             'timeline_started'   => $timelineStarted,
             'timeline_completed' => $timelineCompleted,
             'updated_at'         => time(),
         ];
 
+        $ka_data = [
+            'task_point' => (float) $values['task_point'],
+            'kpi_id'     => (int) $values['kpi_id'],
+        ];
+
         /*
         * Update
         */
+        //kpi_definition
         $this->db
             ->table('kpi_definition')
             ->eq('id', $id)
-            ->update($data);
+            ->update($kd_data);
+
+        //kpi_assignment
+        $this->db
+            ->table('kpi_assignment')
+            ->eq('task_id', $taskId)
+            ->update($ka_data);
 
         $this->flash->success(
             t('KPI updated successfully.')
