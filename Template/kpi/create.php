@@ -23,7 +23,8 @@
     <?= $this->render('KPI:kpi/form', [
     'values' => $values,
     'errors' => $errors,
-    'taskOptions'  => $taskOptions
+    'taskOptions'  => $taskOptions,
+    'funderOptions'  => $funderOptions
 ]) ?>
 
 </form>

@@ -7,8 +7,8 @@ class KPIController extends BaseController
 {
     public function view()
     {
-        $taskId    = $this->request->getIntegerParam('task_id');
-        $kpi       = $this->kpiModel->getKpiAssignTasks($taskId);
+        $taskId = $this->request->getIntegerParam('task_id');
+        $kpi    = $this->kpiModel->getKpiAssignTasks($taskId);
 
         $this->response->html(
             $this->template->render('KPI:kpi/view', [
@@ -78,15 +78,16 @@ class KPIController extends BaseController
 
         $this->response->html(
             $this->template->render('KPI:kpi/create', [
-                'values'      => [
+                'values'        => [
                     'project_id' => $project['id'],
                     'target'     => 0,
                     'actual'     => 0,
                     'task_point' => 0,
                 ],
-                'errors'      => [],
-                'taskOptions' => $this->getTaskOptions($project['id']),
-                'project'     => $project,
+                'errors'        => [],
+                'taskOptions'   => $this->kpiFormHelper->selectOptionBuilder('tasks', 'id', 'title'),
+                'funderOptions' => $this->kpiFormHelper->selectOptionBuilder('kpi_funder', 'id', 'project_alias'),
+                'project'       => $project,
             ])
         );
     }
@@ -122,19 +123,13 @@ class KPIController extends BaseController
         * Stop here if validation failed.
         */
         if (! empty($errors)) {
-            // $this->flash->failure(
-            //     t('Please correct the errors below.')
-            // );
-
             return $this->response->html(
                 $this->template->render(
                     'KPI:kpi/create',
                     [
                         'values'      => $values,
                         'errors'      => $errors,
-                        'taskOptions' => $this->getTaskOptions(
-                            (int) $values['project_id']
-                        ),
+                        'taskOptions' => $this->kpiFormHelper->selectOptionBuilder('tasks', 'id', 'title'),
                         'project'     => $this->projectModel->getById((int) $values['project_id']),
                     ]
                 )
@@ -153,6 +148,8 @@ class KPIController extends BaseController
             $values['timeline_completed'] . ' 00:00:00'
         );
 
+        $values['active'] = $values['status'] === 'DONE' ? 0 : 1;
+
         /*
         * Timestamps.
         */
@@ -161,12 +158,28 @@ class KPIController extends BaseController
         $values['created_at'] = $now;
         $values['updated_at'] = $now;
 
+        $taskId    = $values['task_id'];
+        $taskPoint = $values['task_point'];
+
+        unset($values['task_id']);
+        unset($values['task_point']);
+
         /*
         * Save.
         */
         $this->db
             ->table('kpi_definition')
             ->insert($values);
+
+        $kpiId = $this->db->getLastId();
+
+        if ($taskId && $taskPoint) {
+            $this->kpiModel->create(
+                $taskId,
+                $kpiId,
+                $taskPoint,
+            );
+        }
 
         $this->flash->success(
             t('KPI created successfully.')
@@ -200,38 +213,29 @@ class KPIController extends BaseController
             ->eq('kpi_definition.id', $id)
             ->findOne();
 
-        if (! $kpi) {
-            throw new \RuntimeException('KPI not found');
-        }
+        if (! $kpi) {throw new \RuntimeException('KPI not found');}
 
         // Get project
         $project = $this->projectModel->getById((int) $kpi['project_id']);
 
         if (! $project) {throw new \RuntimeException('Project not found');}
 
-        // Get task options for this project
-        $taskOptions = $this->getTaskOptions((int) $kpi['project_id']);
-
         // Convert Unix timestamps to HTML date format
-        $kpi['timeline_started'] = ! empty($kpi['timeline_started'])
-            ? date('Y-m-d', (int) $kpi['timeline_started'])
-            : '0';
-
-        $kpi['timeline_completed'] = ! empty($kpi['timeline_completed'])
-            ? date('Y-m-d', (int) $kpi['timeline_completed'])
-            : '0';
+        $kpi['timeline_started']   = ! empty($kpi['timeline_started']) ? date('Y-m-d', (int) $kpi['timeline_started']) : '0';
+        $kpi['timeline_completed'] = ! empty($kpi['timeline_completed']) ? date('Y-m-d', (int) $kpi['timeline_completed']) : '0';
 
         // Render edit form
         return $this->response->html(
             $this->template->render(
                 'KPI:kpi/edit',
                 [
-                    'values'      => $kpi,
-                    'taskId'      => $taskId,
-                    'taskPoint'   => $taskPoint,
-                    'errors'      => [],
-                    'taskOptions' => $taskOptions,
-                    'project'     => $project,
+                    'values'        => $kpi,
+                    'taskId'        => $taskId,
+                    'taskPoint'     => $taskPoint,
+                    'errors'        => [],
+                    'taskOptions'   => $this->kpiFormHelper->selectOptionBuilder('tasks', 'id', 'title'),
+                    'funderOptions' => $this->kpiFormHelper->selectOptionBuilder('kpi_funder', 'id', 'project_alias'),
+                    'project'       => $project,
                 ]
             )
         );
@@ -335,6 +339,8 @@ class KPIController extends BaseController
             'timeline_started'   => $timelineStarted,
             'timeline_completed' => $timelineCompleted,
             'updated_at'         => time(),
+            'funder_id'          => empty($values['funder_id']) ? null : (int) $values['funder_id'],
+            'active'             => $values['status'] === 'DONE' ? 0 : 1
         ];
 
         $ka_data = [

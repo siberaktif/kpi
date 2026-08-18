@@ -31,9 +31,76 @@ class KPIModel extends Base
             ->findOne();
     }
 
-    public function updateKpiActualPoints($kpi_id, $task_id)
+    public function updateKpiActualPoints(int $taskId, $operation = true)
     {
+        $assignment = $this->db
+            ->table('kpi_assignment')
+            ->columns('kpi_id', 'task_point')
+            ->eq('task_id', (int) $taskId)
+            ->findOne();
 
+        if (! $assignment) {
+            return false;
+        }
+
+        $kpi = $this->db
+            ->table('kpi_definition')
+            ->columns('actual', 'target')
+            ->eq('id', (int) $assignment['kpi_id'])
+            ->findOne();
+
+        if (! $kpi) {
+            return false;
+        }
+
+        $actual   = (float) $kpi['actual'];
+        $points   = (float) $assignment['task_point'];
+        $target   = (float) $kpi['target'];
+        $kdStatus = 1;
+
+        if (! $operation) {
+            $actual   -= $points;
+            $isActive  = 1;
+        } else {
+            $actual   += $points;
+            $isActive  = 0;
+        }
+
+        // Never allow negative actual points
+        $actual = max(0, $actual);
+
+        if ($actual >= $target) {
+            $status   = 'Done';
+            $kdStatus = 0;
+        } elseif ($actual > 0) {
+            $status = 'ONGOING';
+        } else {
+            $status = 'PENDING';
+        }
+
+        $updateKd = $this->db
+            ->table('kpi_definition')
+            ->eq('id', (int) $assignment['kpi_id'])
+            ->update([
+                'actual' => $actual,
+                'status' => $status,
+                'active' => $kdStatus,
+            ]);
+
+        if (! $updateKd) {
+            error_log('KPI:kpiModel failed to update kpi_definition');
+        }
+
+        $updateKa = $this->db
+            ->table('kpi_assignment')
+            ->eq('id', (int) $taskId)
+            ->update([
+                'is_active' => $isActive,
+            ]);
+
+        if (! $updateKa) {
+            error_log('KPI:kpiModel failed to update kpi_assignment');
+        }
     }
 
     public function getByTaskId($taskId)
@@ -42,7 +109,8 @@ class KPIModel extends Base
             ->table('kpi_assignment')
             ->columns(
                 'kpi_assignment.*',
-                'kd.target_unit'
+                'kd.target_unit',
+                'kd.target'
             )
             ->left(
                 'kpi_definition',

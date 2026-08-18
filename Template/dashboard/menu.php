@@ -6,7 +6,7 @@ if ($this->user->isAdmin()) {
 }
 ?>
 <li>
-     <?= $this->url->icon('bar-chart',t('My KPI'), 'DashboardController', $action, 
+     <?= $this->url->icon('bar-chart',t('Multi-Project KPIs'), 'DashboardController', $action, 
      [
         'project_id' => $project['id'],
         'plugin' => 'KPI'

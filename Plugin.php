@@ -28,10 +28,20 @@ class Plugin extends Base
             return new \Kanboard\Plugin\KPI\Service\ProjectDataService($c);
         };
 
+        $this->container['kpiFormHelper'] = function ($c) {
+            return new \Kanboard\Plugin\KPI\Helper\KpiFormHelper($c);
+        };
+
+        $this->container['taskStatusModel'] = function ($c) {
+            return new \Kanboard\Plugin\KPI\Model\KpiTaskStatusModel($c);
+        };
+
+        $this->container['multiProjectModel'] = function ($c) {
+            return new \Kanboard\Plugin\KPI\Model\MultiProjectModel($c);
+        };
+
         $this->container['assigneeAvatarService'] = function ($c) {
-
             $helper = new \Kanboard\Plugin\KPI\Helper\AssigneeAvatarHelper($c);
-
             try {
                 $helper->setMultiselectMemberModel(
                     $c['multiselectMemberModel']
@@ -39,7 +49,6 @@ class Plugin extends Base
             } catch (\Exception $e) {
                 // Group Assign is not installed.
             }
-
             return $helper;
         };
 
@@ -170,61 +179,23 @@ class Plugin extends Base
             }
         );
 
-        //when board closes
-        $this->on('task.close', function ($task) {
-
-            $taskId = (int) $task['id'];
-
-            // Get submitted form values
-            $values = $this->request->getValues();
-
-            $kpiId = isset($values['kpi_id'])
-                ? (int) $values['kpi_id']
-                : 0;
-
-            $points = isset($values['kpi_points'])
-                ? (float) $values['kpi_points']
-                : 0;
-
-            //Debug;
-            // var_dump($values);
-
-        });
-
         // Register Assets
-        $this->hook->on(
-            'template:layout:css', [
-                'template' => 'plugins/KPI/Asset/css/kanboard-overrides.css',
-            ]);
-
-        $this->hook->on(
-            'template:layout:css',
-            [
-                'template' => 'plugins/KPI/Asset/fontawesome/css/all.min.css',
-            ]
-        );
-
-        $this->hook->on('template:layout:js', [
-            'template' => 'plugins/KPI/Asset/js/chart.min.js',
-        ]);
-
-        $this->hook->on('template:layout:js', [
-            'template' => 'plugins/KPI/Asset/js/dashboard.js',
-        ]);
-
+        $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/kanboard-overrides.css']);
+        $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/fontawesome/css/all.min.css']);
+        $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/buttons.css']);
+        $this->hook->on('template:layout:js', ['template' => 'plugins/KPI/Asset/js/chart.min.js']);
+        $this->hook->on('template:layout:js', ['template' => 'plugins/KPI/Asset/js/dashboard.js']);
         $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/dashboard.css']);
         $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/plugin.css']);
         $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/table.css']);
         $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/form.css']);
         $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/app.css']);
-
         $this->hook->on('template:layout:js', ['template' => 'plugins/KPI/Asset/js/kpi.js']);
         $this->hook->on('template:layout:js', ['template' => 'plugins/KPI/Asset/js/table.js']);
 
         $this->template->hook->attach('template:project:dropdown', 'KPI:project/dropdown');
+        $this->template->hook->attach('template:header:dropdown', 'KPI:header/user_dropdown');
         $this->template->hook->attach('template:dashboard:page-header:menu', 'KPI:dashboard/menu');
-
-        // Top Menu
         $this->template->hook->attach('template:project-header:view-switcher', 'KPI:project_header/views');
     }
 

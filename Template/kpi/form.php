@@ -1,10 +1,7 @@
 <div class="kb-form">
     <div class="kb-form-body kb-row">
         <div class="kb-col kb-col-6">
-            <input type="hidden"
-                id="project_id"
-                name="project_id"
-                value="<?= $this->text->e($values['project_id']) ?>">
+            <?= $this->form->hidden('project_id', $values) ?>
 
             <div>
                 <?= $this->form->label(t('Title'), 'title') ?>
@@ -74,6 +71,11 @@
                         $values,
                         $errors
                     ) ?>
+                </div>
+
+                <div class="kb-col kb-col-6">
+                    <?= $this->form->label(t('Project Funder'), 'funder_id') ?>
+                    <?= $this->form->select('funder_id', $funderOptions, $values, $errors ) ?>
                 </div>
 
                 <div class="kb-col kb-col-6">

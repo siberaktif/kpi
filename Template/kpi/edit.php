@@ -24,6 +24,7 @@
     'taskId'       => $taskId,
     'taskPoint'    => $taskPoint,
     'taskOptions'  => $taskOptions,
+    'funderOptions'  => $funderOptions
 ]) ?>
 
 </form>

@@ -1,4 +1,4 @@
-<?php if($kpi['id'] > 0): ?>
+<?php if(!empty($kpi['id'])): ?>
 <span class=" text-muted">
     <?= $this->modal->medium(
         'bar-chart',

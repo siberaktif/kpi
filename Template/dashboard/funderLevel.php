@@ -1,9 +1,14 @@
+<?php $userId = $this->user->getId(); ?>
+
 <div class="container">
     <div class="container pb-2">
         <div class="kb-row">
-            <div class="kb-col kb-col-6">
-                <div class="">
-                    <span style="font-size: 2rem;">Multi Project Overview</span>
+            <div class="kb-col kb-col-12">
+                <div class="d-flex">
+                    <div class="btn btn-round">
+                        <?= $this->url->icon('arrow-left','','DashboardController','show',['user_id' => $userId]) ?>
+                    </div>
+                    <div class="ms-4" style="font-size: 2rem;">Multi Project Overview</div>
                 </div>
             </div>
         </div>
@@ -28,7 +33,7 @@
                 <div class="card-title"><?= t('Manage Projects') ?></div>
                 <div class="card-value"><?= $stats['completed'] ?: 0 ?></div>
                 <div class="card-footer">
-                    <?= $this->url->icon('arrow-right', 'View Projects', 'DashboardController', 'project', [
+                    <?= $this->url->icon('arrow-right', 'View Projects', 'FunderController', 'index', [
                         'project_id' => $project['id'],'plugin' => 'KPI', ], false)?>
                 </div>
             </div>
@@ -42,7 +47,7 @@
                 <div class="card-title"><?= t('Departments') ?></div>
                 <div class="card-value"><?= $stats['open'] ?: 0 ?></div>
                 <div class="card-footer">
-                <?= $this->url->icon('arrow-right', 'View Departments', 'DashboardController', 'department', [
+                <?= $this->url->icon('arrow-right', 'View Departments', 'ProjectController', 'index', [
                         'project_id' => $project['id'], 'plugin' => 'KPI', ], false)?>
                 </div>
             </div>

@@ -3,7 +3,7 @@
 
 <div class="container">
     <div class="container mt-2 p-3 justify-between align-center d-flex">
-        <div class="btn bg-primary">
+        <div class="btn btn-primary">
             <?= $this->modal->large(
                 'plus',
                 t('Add KPI'),
@@ -31,6 +31,7 @@
                     <th class="kb-text-center" style="width: 100px;"><?= t('Target') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Actual') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Timeline') ?></th>
+                    <th class="kb-text-center" style="width: 100px;"><?= t('Progress') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Status') ?></th>
                 </tr>
             </thead>
@@ -46,55 +47,20 @@
                                 </strong>
                             </a>
 
-                            <ul class="dropdown-menu">
+                            <ul>
                                 <li>
-                                    <?= $this->modal->large(
-                                        'edit',
-                                        t('Edit KPI'),
-                                        'KPIController',
-                                        'edit',
-                                        [
-                                            'id' => $kpi['id'],
-                                            'task_id' => $getTask($kpi['id'])[0]['task_id'] ?? 0,
-                                            'task_point' => $getTask($kpi['id'])[0]['task_point'] ?? 0,
-                                            'plugin' => 'KPI'
-                                        ],
-                                        false,
-                                        '',
-                                        true
-                                    ) ?>
+                                    <?= $this->modal->large('edit', t('Edit KPI'), 'KPIController',
+                                        'edit', ['id' => $kpi['id'], 'task_id' => $getTask($kpi['id'])[0]['task_id'] ?? 0, 'task_point' => $getTask($kpi['id'])[0]['task_point'] ?? 0, 'plugin' => 'KPI']) ?>
                                 </li>
-
-                                <li>
-                                    <?= $this->modal->medium(
-                                        'comment',
-                                        t('Add a comment'),
-                                        'CommentController',
-                                        'create',
-                                        [
-                                            'task_id' => $task['id'],
-                                            'project_id' => $project['id'],
-                                        ],
-                                        false,
-                                        '',
-                                        true
-                                    ) ?>
+                                 <li>
+                                    <?= $this->modal->large('table-list', t('Open Assign Tasks'), 'TaskController','taskAssign', ['id' => $getTask($kpi['id'])[0],'kpi_id' => $kpi['id'],'project_id' => $project['id'],'plugin' => 'KPI']) ?>
                                 </li>
                                 <li>
-                                    <?= $this->modal->small(
-                                        'trash',
-                                        t('Remove'),
-                                        'KPIController',
-                                        'confirm',
-                                        [
-                                            'kpi_id' => $kpi['id'],
-                                            'kpi_name' => $kpi['name'],
-                                            'plugin' => 'KPI'
-                                        ],
-                                        false,
-                                        '',
-                                        true
-                                    ) ?>
+                                    <?= $this->modal->medium('comment', t('Add a comment'),'CommentController','create', ['task_id' => $task['id'], 'project_id' => $project['id']]) ?>
+                                    
+                                </li>
+                                <li>
+                                    <?= $this->modal->small('trash', t('Remove'), 'KPIController', 'confirm', ['kpi_id' => $kpi['id'], 'kpi_name' => $kpi['title'],'plugin' => 'KPI']) ?>
                                 </li>
                             </ul>
                         </div>
@@ -102,36 +68,6 @@
                     </td>
 
                     <td class="kb-text-center">
-                        <?php foreach ($getTask((int) $kpi['id']) as $task): ?>
-                            <div class="dropdown">
-                                <a href="#" class="dropdown-menu dropdown-menu-link-icon">
-                                    <strong>
-                                        #<?= $task['task_id'] ?>
-                                        <i class="fa fa-caret-down"></i>
-                                    </strong>
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <?= $this->modal->large(
-                                            'arrow-right',
-                                            t('Open Assign Tasks'),
-                                            'TaskController',
-                                            'taskAssign',
-                                            [
-                                                'id' => $task['task_id'],
-                                                'kpi_id' => $task['kpi_id'],
-                                                'project_id' => $project['id'],
-                                                'plugin' => 'KPI'
-                                            ],
-                                            false,
-                                            '',
-                                            true
-                                        ) ?>
-                                    </li>
-                                </ul>
-                            </div>
-                        <?php break; ?>
-                        <?php endforeach ?>
                     </td>
 
                     <td class="click-truncate">
@@ -152,6 +88,14 @@
                         <?php else: ?>
                             -
                         <?php endif; ?>
+                    </td>
+
+                    <td class="kb-text-center">
+                        <div class="progress-container" style="background: whitesmoke">
+                            <div class="progress" style="background: gray; width: <?= $kpi['progress'] ?>%">
+                                <?= $kpi['progress']. '%' ?>
+                            </div>
+                        </div>
                     </td>
 
                     <?php if ($kpi['status'] === 'DONE'): ?>
@@ -194,6 +138,7 @@
                     <th class="kb-text-center" style="width: 100px;"><?= t('Target') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Actual') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Timeline') ?></th>
+                    <th class="kb-text-center" style="width: 100px;"><?= t('Progress') ?></th>
                     <th class="kb-text-center" style="width: 100px;"><?= t('Status') ?></th>
                 </tr>
             </thead>
@@ -210,7 +155,7 @@
                                     </strong>
                                 </a>
 
-                                <ul class="dropdown-menu">
+                                <ul>
                                     <li>
                                         <?= $this->modal->large(
                                             'edit',
@@ -252,7 +197,7 @@
                                             'confirm',
                                             [
                                                 'kpi_id' => $kpi['id'],
-                                                'kpi_name' => $kpi['name'],
+                                                'kpi_name' => $kpi['title'],
                                                 'plugin' => 'KPI'
                                             ],
                                             false,
@@ -274,7 +219,7 @@
                                             <i class="fa fa-caret-down"></i>
                                         </strong>
                                     </a>
-                                    <ul class="dropdown-menu">
+                                    <ul>
                                         <li>
                                             <?= $this->modal->large(
                                                 'arrow-right',
@@ -316,6 +261,14 @@
                             <?php else: ?>
                                 -
                             <?php endif; ?>
+                        </td>
+
+                        <td class="kb-text-center">
+                            <div class="progress-container" style="background: whitesmoke">
+                                <div class="progress" style="background: gray; width: <?= $kpi['progress'] ?>%">
+                                    <?= $kpi['progress'] . '%' ?>
+                                </div>
+                            </div>
                         </td>
 
                         <?php if ($kpi['status'] === 'DONE'): ?>

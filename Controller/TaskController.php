@@ -133,16 +133,16 @@ class TaskController extends BaseController
         $project_id = $this->request->getIntegerParam('project_id');
 
         $tasksIds = $this->dashboardService->getKpiAssignmentTasksIds($kpi_id);
-        $tasks     = $this->dashboardService->getTaskList($project_id, $tasksIds);
+        $tasks    = $this->dashboardService->getTaskList($project_id, $tasksIds);
         $project  = $this->dashboardService->getProjectList($project_id);
 
-        //print_r($tasks);
+        print_r($$tasks);
 
         $this->response->html(
             $this->template->render(
                 'KPI:kpi/task_assign',
                 [
-                    'tasks'    => $tasks,
+                    'tasks'   => $tasks,
                     'project' => $project,
                 ]
             )

@@ -52,6 +52,10 @@
     cursor: pointer;
 }
 
+.kb-table .click-truncate p{
+    display: inline;
+}
+
 .kb-table .click-truncate.expanded {
     position: absolute;
     z-index: 1000;

@@ -3,6 +3,9 @@
         <?= t('Assigned Task List') ?>
     </h2>
 </div>
+<?php if(empty($tasks)): ?>
+    <div class="alert alert-danger">There is no tasks assign for this KPI yet!</div>
+<?php else: ?>
 <div class="card shadow-sm">
     <div class="container">
         <table class="kb-table">
@@ -60,3 +63,4 @@
         </ul>
     </div>
 </div>
+<?php endif; ?>

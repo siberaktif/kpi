@@ -434,18 +434,22 @@ class DashboardService extends Base
         $query = $this->db
             ->table('tasks')
             ->columns(
-                'tasks.id', 
-                'tasks.title', 
-                'tasks.description', 
-                'tasks.date_started', 
+                'tasks.id',
+                'tasks.title',
+                'tasks.description',
+                'tasks.date_started',
                 'tasks.date_due',
                 'c.title AS column_name',
                 'ka.kpi_id',
                 'ka.task_point'
-                )
+            )
             ->left('kpi_assignment', 'ka', 'task_id', 'tasks', 'id')
             ->left('columns', 'c', 'id', 'tasks', 'column_id')
             ->eq('tasks.project_id', $projectId);
+
+        if (empty($ids)) {
+            return [];
+        }
 
         if (is_int($ids) && $ids > 0) {
             return $query
@@ -468,6 +472,7 @@ class DashboardService extends Base
             ->table('kpi_assignment')
             ->columns('task_id')
             ->eq('kpi_id', $kpi_id)
+            ->eq('is_active', 1)
             ->findAll();
 
         return array_column($rows, 'task_id');
@@ -518,10 +523,13 @@ class DashboardService extends Base
 
     public function getKpiStats($projectId)
     {
-        // Get KPI status counts
         $counts = $this->db
             ->table('kpi_definition')
-            ->columns('status', 'COUNT(*) AS total')
+            ->columns(
+                'status',
+                'COUNT(*) AS total',
+                'AVG(progress) AS progress'
+            )
             ->eq('project_id', $projectId)
             ->groupBy('status')
             ->findAll();
@@ -532,17 +540,17 @@ class DashboardService extends Base
             'pending'   => 0,
             'scheduled' => 0,
             'planned'   => 0,
+            'progress'  => 0,
             'kpiProg'   => 0,
         ];
 
-        $total_kpi = 0;
-
         foreach ($counts as $row) {
 
-            $count      = (int) $row['total'];
-            $total_kpi += $count;
+            $status = strtoupper($row['status']);
+            $count  = (int) $row['total'];
+            $score  = round((float) $row['progress'], 2);
 
-            switch (strtoupper($row['status'])) {
+            switch ($status) {
 
                 case 'DONE':
                     $kpiStats['done'] = $count;
@@ -564,12 +572,22 @@ class DashboardService extends Base
                     $kpiStats['planned'] = $count;
                     break;
             }
+
+            // Store progress for this status
+            $kpiStats[strtolower($status) . '_progress'] = $score;
         }
 
-        // Calculate overall progress
-        if ($total_kpi > 0) {
-            $kpiStats['kpiProg'] = round(($kpiStats['done'] / $total_kpi) * 100, 2);
-        }
+        // Overall KPI progress
+        $overall = $this->db
+            ->table('kpi_definition')
+            ->columns('AVG(progress) AS progress')
+            ->eq('project_id', $projectId)
+            ->findOne();
+
+        $kpiStats['kpiProg'] = round(
+            (float) ($overall['progress'] ?? 0),
+            2
+        );
 
         return $kpiStats;
     }

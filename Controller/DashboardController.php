@@ -62,10 +62,9 @@ class DashboardController extends BaseController
             $this->helper->layout->app(
                 'KPI:dashboard/funderLevel',
                 [
-                    'title'       => t('Key Performance Indicator')
+                    'title' => t('Key Performance Indicator'),
                 ]
             )
         );
     }
-
 }
