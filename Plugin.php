@@ -1,6 +1,7 @@
 <?php
 namespace Kanboard\Plugin\KPI;
 
+use Kanboard\Core\Translator;
 use Kanboard\Core\Plugin\Base;
 
 class Plugin extends Base
@@ -181,7 +182,7 @@ class Plugin extends Base
 
         // Register Assets
         $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/kanboard-overrides.css']);
-        $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/fontawesome/css/all.min.css']);
+        // $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/fontawesome/css/all.min.css']);
         $this->hook->on('template:layout:css', ['template' => 'plugins/KPI/Asset/css/buttons.css']);
         $this->hook->on('template:layout:js', ['template' => 'plugins/KPI/Asset/js/chart.min.js']);
         $this->hook->on('template:layout:js', ['template' => 'plugins/KPI/Asset/js/dashboard.js']);
@@ -197,6 +198,11 @@ class Plugin extends Base
         $this->template->hook->attach('template:header:dropdown', 'KPI:header/user_dropdown');
         $this->template->hook->attach('template:dashboard:page-header:menu', 'KPI:dashboard/menu');
         $this->template->hook->attach('template:project-header:view-switcher', 'KPI:project_header/views');
+    }
+
+    public function onStartup()
+    {
+        Translator::load($this->languageModel->getCurrentLanguage(), __DIR__.'/Locale');
     }
 
     public function getPluginName()

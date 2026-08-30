@@ -205,6 +205,7 @@ class DashboardService extends Base
 
         $offset = max(0, ($page - 1) * $limit);
 
+        /**
         $sql = "
             SELECT
                 t.id,
@@ -215,6 +216,34 @@ class DashboardService extends Base
                 t.date_due,
                 t.column_id,
                 t.owner_ms,
+                u.id AS assignee_id,
+                u.username AS assignee_username,
+                u.name AS assignee_name,
+                u.email AS assignee_email,
+                c.title AS column_name,
+                co.comment_count
+            FROM tasks t
+            LEFT JOIN users u
+                ON u.id = t.owner_id
+            LEFT JOIN columns c
+                ON c.id = t.column_id
+            LEFT JOIN (
+                SELECT task_id, COUNT(*) AS comment_count
+                FROM comments
+                GROUP BY task_id
+            ) co ON co.task_id = t.id
+            WHERE t.project_id = ?
+        ";
+        **/
+         $sql = "
+            SELECT
+                t.id,
+                t.title,
+                t.description,
+                t.date_completed,
+                t.date_started,
+                t.date_due,
+                t.column_id,
                 u.id AS assignee_id,
                 u.username AS assignee_username,
                 u.name AS assignee_name,

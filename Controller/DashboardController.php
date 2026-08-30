@@ -56,13 +56,50 @@ class DashboardController extends BaseController
         );
     }
 
-    public function multiProjectOverview()
+/**     public function multiProjectOverview()
     {
         $this->response->html(
             $this->helper->layout->app(
                 'KPI:dashboard/funderLevel',
                 [
                     'title' => t('Key Performance Indicator'),
+                ]
+            )
+        );
+    }
+    */
+        public function multiProjectOverview()
+    {
+        $projects = $this->projectModel->getAll();
+    
+        // Eğer proje seçilmediyse, varsayılan olarak ilk projeyi al
+        $projectId = $this->request->getIntegerParam('project_id');
+        if (empty($projectId) && !empty($projects)) {
+            $projectId = $projects[0]['id'];
+        }
+    
+        if ($projectId) {
+            $project = $this->projectModel->getById($projectId);
+            $stats = $this->dashboardService->getProjectStats($projectId);
+            $kpiStats = $this->dashboardService->getKpiStats($projectId);
+            $taskTrend = $this->dashboardService->getTaskTrend($projectId);
+        } else {
+            $project = ['id' => 0, 'name' => ''];
+            $stats = [];
+            $kpiStats = [];
+            $taskTrend = ['labels' => [], 'percentage' => []];
+        }
+    
+        $this->response->html(
+            $this->helper->layout->app(
+                'KPI:dashboard/funderLevel',
+                [
+                    'project'     => $project,
+                    'projects'    => $projects,
+                    'stats'       => $stats,
+                    'kpiStats'    => $kpiStats,
+                    'taskTrend'   => $taskTrend,
+                    'title'       => t('Key Performance Indicator'),
                 ]
             )
         );
