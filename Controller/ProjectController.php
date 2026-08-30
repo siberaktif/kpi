@@ -13,7 +13,7 @@ class ProjectController extends BaseController
             $this->helper->layout->app(
                 'KPI:project/project_list',
                 [
-                    'title'    => 'Project Departments',
+                    'title'    => t('Project Departments'),
                     'projects' => $projects,
                 ]
             )

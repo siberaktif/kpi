@@ -18,7 +18,7 @@
     </div>
     <div class="container">
         <div class="pb-2">
-            <strong>Funders and Projects</strong>
+            <strong><?= t('Funders and Projects') ?></strong>
         </div>
         <table class="kb-table kb-table-striped">
             <thead>

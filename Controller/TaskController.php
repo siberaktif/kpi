@@ -78,7 +78,7 @@ class TaskController extends BaseController
             $this->getProject(),
             'open',
             'KPI:kpi/task_open',
-            'Open tasks'
+            t('Open tasks')
         );
     }
 
@@ -88,7 +88,7 @@ class TaskController extends BaseController
             $this->getProject(),
             'overdue',
             'KPI:kpi/task_overdue',
-            'Overdue tasks'
+            t('Overdue tasks')
         );
     }
 
@@ -98,7 +98,7 @@ class TaskController extends BaseController
             $this->getProject(),
             'completed',
             'KPI:kpi/task_complete',
-            'Completed tasks'
+            t('Completed tasks')
         );
     }
 

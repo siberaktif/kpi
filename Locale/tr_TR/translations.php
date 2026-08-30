@@ -1,7 +1,7 @@
 <?php
 return array(
     'Multi-Project KPIs' => 'Çoklu Proje KPI\'ları',
-    'Key Performance Indicator' => 'Anahtar Performans Göstergesi',
+    'Key Performance Indicator' => 'KPI Anahtar Performans Göstergesi',
     'Multi Project Overview' => 'Çoklu Proje Genel Bakış',
     'Overall KPI' => 'Genel KPI',
     'Overall Project Performance' => 'Genel Proje Performansı',
@@ -20,7 +20,7 @@ return array(
     'KPI related to task' => 'Göreve Bağlı KPI',
     'Select KPI' => 'KPI Seç',
     'Task KPI Points' => 'Görev KPI Puanları',
-    'Completed Tasks' => 'Tamamlanan Görevler',
+    'Completed Tasks' => 'Biten Görevler',
     'Finished Tasks' => 'Bitirilen Görevler',
     'Currently Active' => 'Şu An Aktif',
     'Overdue Tasks' => 'Geciken Görevler',
@@ -42,7 +42,7 @@ return array(
     'Date Completed' => 'Bitiş Tarihi',
     'Funders and Projects' => 'Fonlayıcılar ve Projeler',
     'Completed tasks' => 'Biten Görevler',
-    'No completed tasks found.' => 'Tamamlanan görev bulunamadı.',
+    'No completed tasks found.' => 'Biten görev bulunamadı.',
     'Open tasks' => 'Açık Görevler',
     'Task List' => 'Görev Listesi',
     'Overdue tasks' => 'Geciken Görevler',
@@ -66,7 +66,7 @@ return array(
     'No open tasks found.' => 'Açık görev bulunamadı.',
     'Edit the task' => 'Görevi Düzenle',
     'Add a comment' => 'Yorum Ekle',
-    'View completed tasks' => 'Tamamlanan görevleri görüntüle',
+    'View completed tasks' => 'Biten görevleri görüntüle',
     'View overdue tasks' => 'Geciken görevleri görüntüle',
     'Done' => 'Tamamlandı',
     'Ongoing' => 'Devam Ediyor',
@@ -80,4 +80,5 @@ return array(
     'Comments' => 'Yorumlar',
     'Read' => 'Oku',
     'Close this task' => 'Görevi Kapat',
+     'Manage KPI' => 'KPI Yönet',
 );

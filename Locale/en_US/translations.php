@@ -80,4 +80,5 @@ return array(
     'Comments' => 'Comments',
     'Read' => 'Read',
     'Close this task' => 'Close this task',
+    'Manage KPI' => 'Manage KPI',
 );
