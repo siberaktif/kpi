@@ -39,7 +39,7 @@ $taskTrend = $taskTrend ?? ['labels' => [], 'percentage' => []];
                 </div>
                 <div class="card-content">
                     <div class="card-title"><?= t('Manage Projects') ?></div>
-                    <div class="card-value"><?= $stats['completed'] ?: 0 ?></div>
+                    <div class="card-value"><?= $stats['open'] ?: 0 ?></div>
                     <div class="card-footer">
                         <i class="fa fa-arrow-right"></i> <?= t('View Projects') ?>
                     </div>
@@ -94,10 +94,10 @@ $taskTrend = $taskTrend ?? ['labels' => [], 'percentage' => []];
         </div>
     </div>
 
-    <div id="kpi-dashboard-data" 
-        data-completed="<?= $stats['completed'] ?>" 
+    <div id="kpi-dashboard-data"
+        data-completed="<?= $stats['completed'] ?>"
         data-open="<?= $stats['open'] ?>"
-        data-overdue="<?= $stats['overdue'] ?>" 
+        data-overdue="<?= $stats['overdue'] ?>"
 data-label-completed="<?= t('Completed') ?>"
 data-label-open="<?= t('Open') ?>"
 data-label-overdue="<?= t('Overdue') ?>"
@@ -108,8 +108,8 @@ data-label-planned="<?= t('Planned') ?>"
 data-label-scheduled="<?= t('Scheduled') ?>"
 data-label-overall-task="<?= t('Overall Task') ?>"
 data-label-no-data="<?= t('No Data') ?>"
-        data-done="<?= $kpiStats['done'] ?>" 
-        data-ongoing="<?= $kpiStats['ongoing'] ?>" 
+        data-done="<?= $kpiStats['done'] ?>"
+        data-ongoing="<?= $kpiStats['ongoing'] ?>"
         data-pending="<?= $kpiStats['pending'] ?>"
         data-planned="<?= $kpiStats['planned'] ?>"
         data-scheduled="<?= $kpiStats['scheduled'] ?>"

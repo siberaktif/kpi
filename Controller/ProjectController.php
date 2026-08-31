@@ -7,7 +7,7 @@ class ProjectController extends BaseController
 {
     public function index()
     {
-        $projects = $this->projectDataService->getKpiProjects();
+        $projects = $this->projectModel->getAll();
 
         $this->response->html(
             $this->helper->layout->app(
@@ -17,7 +17,6 @@ class ProjectController extends BaseController
                     'projects' => $projects,
                 ]
             )
-
         );
     }
 }

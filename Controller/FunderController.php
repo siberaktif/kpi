@@ -43,42 +43,35 @@ class FunderController extends BaseController
             $errors['funder_name'][] = t('Funder name is required.');
         }
 
-        if (! empty($errors)) {
-
+        if (!empty($errors)) {
             return $this->response->html(
-                $this->template->render(
-                    'KPI:funder/create',
-                    [
-                        'values' => $values,
-                        'errors' => $errors,
-                    ]
-                )
+                $this->template->render('KPI:funder/create', [
+                    'values' => $values,
+                    'errors' => $errors,
+                ])
             );
         }
 
-        $values['date_started']   = strtotime($values['date_started'] . ' 00:00:00');
-        $values['date_completed'] = strtotime($values['date_completed'] . ' 00:00:00');
+        // Tarihleri güvenli şekilde integer'a çevir (boşsa NULL yap)
+        $values['date_started']   = !empty($values['date_started']) ? strtotime($values['date_started'] . ' 00:00:00') : null;
+        $values['date_completed'] = !empty($values['date_completed']) ? strtotime($values['date_completed'] . ' 00:00:00') : null;
+
+        // year_duration integer olmalı; boşsa NULL
+        $values['year_duration']  = isset($values['year_duration']) && $values['year_duration'] !== '' ? (int) $values['year_duration'] : null;
 
         $this->multiProjectModel->addFunder($values);
 
-        $this->flash->success(
-            t('Funder created successfully.')
-        );
+        $this->flash->success(t('Funder created successfully.'));
 
         return $this->response->redirect(
-            $this->helper->url->to(
-                'FunderController',
-                'index',
-                []
-            ),
+            $this->helper->url->to('FunderController', 'index', []),
             true
         );
-
     }
 
     public function edit()
     {
-        $id     = $this->request->getIntegerParam('funder_id');
+        $id = $this->request->getIntegerParam('funder_id');
         $funder = $this->multiProjectModel->getFunderInfoById($id);
 
         $this->response->html(
@@ -91,8 +84,8 @@ class FunderController extends BaseController
 
     public function update()
     {
-        $values   = $this->request->getValues();
-        $errors   = [];
+        $values = $this->request->getValues();
+        $errors = [];
 
         if (empty($values['project_name'])) {
             $errors['project_name'][] = t('Project name is required.');
@@ -102,38 +95,31 @@ class FunderController extends BaseController
             $errors['funder_name'][] = t('Funder name is required.');
         }
 
-        if (! empty($errors)) {
-
+        if (!empty($errors)) {
             return $this->response->html(
-                $this->template->render(
-                    'KPI:funder/edit',
-                    [
-                        'values' => $values,
-                        'errors' => $errors,
-                    ]
-                )
+                $this->template->render('KPI:funder/edit', [
+                    'values' => $values,
+                    'errors' => $errors,
+                ])
             );
         }
 
-        $values['date_started']   = strtotime($values['date_started'] . ' 00:00:00');
-        $values['date_completed'] = strtotime($values['date_completed'] . ' 00:00:00');
+        // Tarihleri güvenli şekilde integer'a çevir (boşsa NULL yap)
+        $values['date_started']   = !empty($values['date_started']) ? strtotime($values['date_started'] . ' 00:00:00') : null;
+        $values['date_completed'] = !empty($values['date_completed']) ? strtotime($values['date_completed'] . ' 00:00:00') : null;
+        $values['year_duration']  = isset($values['year_duration']) && $values['year_duration'] !== '' ? (int) $values['year_duration'] : null;
 
         $this->multiProjectModel->updateFunder($values['id'], $values);
 
-        $this->flash->success(t('Funder Update successfully.'));
+        $this->flash->success(t('Funder updated successfully.'));
 
         return $this->response->redirect(
-            $this->helper->url->to(
-                'FunderController',
-                'index',
-                []
-            ),
+            $this->helper->url->to('FunderController', 'index', []),
             true
         );
     }
 
     public function remove()
     {
-
     }
 }

@@ -1,7 +1,7 @@
 <?php
 namespace Kanboard\Plugin\KPI\Schema;
 
-const VERSION = 2;
+const VERSION = 1;
 
 function version_1($pdo)
 {
@@ -99,18 +99,6 @@ function version_1($pdo)
             INDEX(user_id)
         ) ENGINE=InnoDB;
     ");
-}
-
-function version_2($pdo)
-{
-    // Add missing columns for existing installations
-    $pdo->exec("ALTER TABLE kpi_definition ADD COLUMN progress DECIMAL(10,2) DEFAULT 0.00 AFTER actual");
-    $pdo->exec("ALTER TABLE kpi_definition ADD COLUMN timeline_started INT DEFAULT NULL");
-    $pdo->exec("ALTER TABLE kpi_definition ADD COLUMN timeline_completed INT DEFAULT NULL");
-    $pdo->exec("ALTER TABLE kpi_definition ADD COLUMN target_unit VARCHAR(50) DEFAULT NULL");
-    $pdo->exec("ALTER TABLE kpi_assignment ADD COLUMN task_id INT NOT NULL DEFAULT 0");
-    $pdo->exec("ALTER TABLE kpi_assignment ADD COLUMN task_point DECIMAL(10,2) DEFAULT 0.00");
-    $pdo->exec("ALTER TABLE kpi_assignment ADD COLUMN is_active TINYINT(1) DEFAULT 1");
 
     // Funder table
     $pdo->exec("
@@ -121,8 +109,10 @@ function version_2($pdo)
             project_alias VARCHAR(255) DEFAULT NULL,
             department_name VARCHAR(255) DEFAULT NULL,
             project_funder VARCHAR(255) DEFAULT NULL,
+            description TEXT DEFAULT NULL,
             date_started INT DEFAULT NULL,
             date_completed INT DEFAULT NULL,
+            year_duration INT DEFAULT NULL,
             created_at INT NOT NULL DEFAULT 0,
             updated_at INT NOT NULL DEFAULT 0
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

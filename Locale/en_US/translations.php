@@ -81,4 +81,8 @@ return array(
     'Read' => 'Read',
     'Close this task' => 'Close this task',
     'Manage KPI' => 'Manage KPI',
+    'Delete KPI' => 'Delete KPI',
+    'Edit Project and Funder Informations' => 'Edit Project and Funder Informations',
+    'Edit Funder Informations' => 'Edit Funder Informations',
+    'Are you sure you want to delete: "%s"?' => 'Are you sure you want to delete: "%s"?',
 );
